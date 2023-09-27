@@ -2,7 +2,7 @@ import ftfy
 import spacy
 import os
 import json
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import multiprocessing
 import threading
 
@@ -87,9 +87,17 @@ class Preprocessor:
     def ner_nltk(self, text):
         return ne_chunk(pos_tag(word_tokenize(text)))
 
-    def process_file(self, file_path, landmark_embeddings, progress_bar):
+    def process_file(self, file_path, landmark_embeddings):
+        """
+        Process a single file. This function is used by the process_folder function.
+
+        :param file_path: The path to the file that needs to be processed
+        :param landmark_embeddings: A list of the landmark embeddings
+        :return: A list of the shared pages
+        """
+        print(f"Processing file {file_path}")
         with open(file_path, "r") as file:
-            for line in file:
+            for line in tqdm(file, total=sum(1 for line in open(file_path, "r"))):
                 info_dict = json.loads(line)
 
                 # Handle every seperate wikipedia page
@@ -110,44 +118,30 @@ class Preprocessor:
                         ):
                             self.shared_page_dictionary.append(info_dict)
                             break
-        progress_bar.update(1)
 
     def process_folder(self, folder, landmark_embeddings, debug, datadir=DATA_PATH):
         """
         Process all files in a folder in a specific directory. Threads are used to speed up the process.
         Every file is processed in a separate thread.
+
+        :param folder: The folder that needs to be processed
+        :param landmark_embeddings: A list of the landmark embeddings
+        :param debug: A boolean that indicates if the debug mode is on
+        :param datadir: The directory where the data is stored
+        :return: A list of the shared pages
         """
         folder_path = os.path.join(datadir, folder)
         num_files = len(os.listdir(folder_path))
 
-        threads = []  # Store the thread objects
-
         for file_nr, filename in enumerate(os.listdir(folder_path)):
             file_path = os.path.join(folder_path, filename)
 
-            # Create and start a thread for each file
-            progress_bar = tqdm(
-                desc=f"Processing '{filename}' in folder '{folder}'",
-                position=file_nr,
-                total=num_files,
-                dynamic_ncols=True,
-            )
-            thread = threading.Thread(
-                target=self.process_file,
-                args=(file_path, landmark_embeddings, progress_bar),
-            )
-            thread.start()
-            threads.append(thread)  # Store the thread object
+            self.process_file(file_path, landmark_embeddings)
 
             if debug:
                 print(
                     f"{file_nr+1}/{num_files} - Started processing '{filename}' in folder '{folder}'"
                 )
-
-        # Wait for all threads to finish
-        for thread in threads:
-            thread.join()
-
         if debug:
             print(f"Folder {folder} is processed")
 
