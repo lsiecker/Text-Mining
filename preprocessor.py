@@ -120,6 +120,8 @@ class Preprocessor:
         folder_path = os.path.join(datadir, folder)
         num_files = len(os.listdir(folder_path))
 
+        threads = []  # Store the thread objects
+
         for file_nr, filename in enumerate(os.listdir(folder_path)):
             file_path = os.path.join(folder_path, filename)
 
@@ -135,12 +137,16 @@ class Preprocessor:
                 args=(file_path, landmark_embeddings, progress_bar),
             )
             thread.start()
-            thread.join()
+            threads.append(thread)  # Store the thread object
 
             if debug:
                 print(
                     f"{file_nr+1}/{num_files} - Started processing '{filename}' in folder '{folder}'"
                 )
+
+        # Wait for all threads to finish
+        for thread in threads:
+            thread.join()
 
         if debug:
             print(f"Folder {folder} is processed")
