@@ -119,9 +119,7 @@ class Preprocessor:
                             self.shared_page_dictionary.append(info_dict)
                             break
                         
-    def process_file_title(self, file_path):
-        title = "UNESCO World Heritage Site "
-
+    def process_file_title(self, file_path, title):
         # Load the JSON data
         with open(file_path, 'r', encoding='utf-8') as file:
             for line in file:
@@ -129,7 +127,7 @@ class Preprocessor:
                 if title in info_dict['text'] and info_dict not in self.shared_page_dictionary and info_dict['text'] != "":
                             self.shared_page_dictionary.append(info_dict)
 
-    def process_folder(self, folder, landmark_embeddings, debug, datadir=DATA_PATH):
+    def process_folder(self, folder, landmark_embeddings, debug, title, nlp, datadir=DATA_PATH):
         """
         Process all files in a folder in a specific directory. Threads are used to speed up the process.
         Every file is processed in a separate thread.
@@ -146,7 +144,10 @@ class Preprocessor:
         for file_nr, filename in enumerate(os.listdir(folder_path)):
             file_path = os.path.join(folder_path, filename)
 
-            self.process_file_nlp(file_path, landmark_embeddings)
+            if nlp:
+                self.process_file_nlp(file_path, landmark_embeddings)
+            else:
+                self.process_file_title(file_path, title)
 
             if debug:
                 print(
