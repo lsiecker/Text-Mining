@@ -87,7 +87,7 @@ class Preprocessor:
     def ner_nltk(self, text):
         return ne_chunk(pos_tag(word_tokenize(text)))
 
-    def process_file(self, file_path, landmark_embeddings):
+    def process_file_nlp(self, file_path, landmark_embeddings):
         """
         Process a single file. This function is used by the process_folder function.
 
@@ -136,7 +136,7 @@ class Preprocessor:
         for file_nr, filename in enumerate(os.listdir(folder_path)):
             file_path = os.path.join(folder_path, filename)
 
-            self.process_file(file_path, landmark_embeddings)
+            self.process_file_nlp(file_path, landmark_embeddings)
 
             if debug:
                 print(
