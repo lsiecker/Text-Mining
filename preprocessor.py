@@ -118,6 +118,16 @@ class Preprocessor:
                         ):
                             self.shared_page_dictionary.append(info_dict)
                             break
+                        
+    def process_file_title(self, file_path):
+        title = "UNESCO World Heritage Site "
+
+        # Load the JSON data
+        with open(file_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                info_dict = json.loads(line)
+                if title in info_dict['text'] and info_dict not in self.shared_page_dictionary and info_dict['text'] != "":
+                            self.shared_page_dictionary.append(info_dict)
 
     def process_folder(self, folder, landmark_embeddings, debug, datadir=DATA_PATH):
         """
