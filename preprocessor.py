@@ -1,5 +1,6 @@
 import ftfy
 import spacy
+from spacy.tokens import Doc, DocBin
 import os
 import json
 from tqdm import tqdm, trange
@@ -157,3 +158,42 @@ class Preprocessor:
             print(f"Folder {folder} is processed")
 
         return list(self.shared_page_dictionary)
+    
+    def process_export(self, export_data):
+        # Create dictionaries to store labels and their relations
+        label_data = {}
+        relation_data = {}
+        training_data = []
+
+        for data in export_data:
+            label_list = []
+            for item in data['annotations'][0]['result']:
+                if item['type'] == 'labels':
+                    label_list.append((item['value']['start'], item['value']['end'], item['value']['labels'][0]))
+                    label_id = item['id']
+                    label_value = item['value']['text']
+                    label_data[label_id] = label_value
+                elif item['type'] == 'relation':
+                    from_id = item['from_id']
+                    to_id = item['to_id']
+                    relation_labels = item['labels']
+                    if from_id in label_data and to_id in label_data:
+                        relation_data[(label_data[from_id], label_data[to_id])] = relation_labels
+            training_data.append((data['data']['text'], label_list))
+            
+        return training_data, relation_data
+    
+    def preprocess_spacy(self, training_data):
+        nlp = spacy.blank("en")
+        # the DocBin will store the example documents
+        db = DocBin()
+        for text, annotations in training_data:
+            doc = nlp(text)
+            ents = []
+            for start, end, label in annotations:
+                span = doc.char_span(start, end, label=label)
+                ents.append(span)
+            doc.ents = ents
+            db.add(doc)
+        save_path = os.path.join(ROOT_DIR, "data\\", "train.spacy")
+        db.to_disk(save_path)
