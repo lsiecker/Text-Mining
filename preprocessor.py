@@ -191,13 +191,8 @@ class Preprocessor:
             training_data.append((data["data"]["text"], label_list))
 
         return training_data, relation_data
-<<<<<<< HEAD
     
     def preprocess_spacy(self, training_data, split_ratio=0.8):
-=======
-
-    def preprocess_spacy(self, training_data):
->>>>>>> 9a557db3040c314f9007b36a8cdfff95a5adfbca
         nlp = spacy.blank("en")
         
         # Shuffle the training data to ensure randomness
