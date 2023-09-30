@@ -1,17 +1,15 @@
 import ftfy
 import spacy
 from spacy.tokens import Doc, DocBin
+import random
 import os
 import json
 from tqdm import tqdm, trange
 import multiprocessing
-import threading
-
 import re
 
-import nltk
-from nltk import word_tokenize, pos_tag, ne_chunk
 
+# Set the root directory of the project
 ROOT_DIR = os.path.dirname(
     os.path.dirname("preprocessing.ipynb")
 )  # This file is the root of the project
@@ -84,9 +82,6 @@ class Preprocessor:
     def ner_spacy(self, text):
         doc = self.nlp(text)
         return doc
-
-    def ner_nltk(self, text):
-        return ne_chunk(pos_tag(word_tokenize(text)))
 
     def process_file_nlp(self, file_path, landmark_embeddings):
         """
@@ -183,17 +178,43 @@ class Preprocessor:
             
         return training_data, relation_data
     
-    def preprocess_spacy(self, training_data):
+    def preprocess_spacy(self, training_data, split_ratio=0.8):
         nlp = spacy.blank("en")
-        # the DocBin will store the example documents
-        db = DocBin()
-        for text, annotations in training_data:
+        
+        # Shuffle the training data to ensure randomness
+        random.shuffle(training_data)
+        
+        # Split the data into training and development sets
+        split_index = int(len(training_data) * split_ratio)
+        train_data = training_data[:split_index]
+        dev_data = training_data[split_index:]
+        
+        # Create train.spacy
+        train_db = DocBin()
+        for text, annotations in train_data:
             doc = nlp(text)
             ents = []
             for start, end, label in annotations:
                 span = doc.char_span(start, end, label=label)
-                ents.append(span)
+                if span is not None:
+                    ents.append(span)
             doc.ents = ents
-            db.add(doc)
-        save_path = os.path.join(ROOT_DIR, "data\\", "train.spacy")
-        db.to_disk(save_path)
+            train_db.add(doc)
+        
+        train_save_path = os.path.join(ROOT_DIR, "data", "train.spacy")
+        train_db.to_disk(train_save_path)
+        
+        # Create dev.spacy
+        dev_db = DocBin()
+        for text, annotations in dev_data:
+            doc = nlp(text)
+            ents = []
+            for start, end, label in annotations:
+                span = doc.char_span(start, end, label=label)
+                if span is not None:
+                    ents.append(span)
+            doc.ents = ents
+            dev_db.add(doc)
+        
+        dev_save_path = os.path.join(ROOT_DIR, "data", "dev.spacy")
+        dev_db.to_disk(dev_save_path)
