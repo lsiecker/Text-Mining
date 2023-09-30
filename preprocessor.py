@@ -114,16 +114,22 @@ class Preprocessor:
                         ):
                             self.shared_page_dictionary.append(info_dict)
                             break
-                        
+
     def process_file_title(self, file_path, title):
         # Load the JSON data
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             for line in file:
                 info_dict = json.loads(line)
-                if title in info_dict['text'] and info_dict not in self.shared_page_dictionary and info_dict['text'] != "":
-                            self.shared_page_dictionary.append(info_dict)
+                if (
+                    title in info_dict["text"]
+                    and info_dict not in self.shared_page_dictionary
+                    and info_dict["text"] != ""
+                ):
+                    self.shared_page_dictionary.append(info_dict)
 
-    def process_folder(self, folder, landmark_embeddings, debug, title, nlp, datadir=DATA_PATH):
+    def process_folder(
+        self, folder, landmark_embeddings, debug, title, nlp, datadir=DATA_PATH
+    ):
         """
         Process all files in a folder in a specific directory. Threads are used to speed up the process.
         Every file is processed in a separate thread.
@@ -153,7 +159,7 @@ class Preprocessor:
             print(f"Folder {folder} is processed")
 
         return list(self.shared_page_dictionary)
-    
+
     def process_export(self, export_data):
         # Create dictionaries to store labels and their relations
         label_data = {}
@@ -162,23 +168,36 @@ class Preprocessor:
 
         for data in export_data:
             label_list = []
-            for item in data['annotations'][0]['result']:
-                if item['type'] == 'labels':
-                    label_list.append((item['value']['start'], item['value']['end'], item['value']['labels'][0]))
-                    label_id = item['id']
-                    label_value = item['value']['text']
+            for item in data["annotations"][0]["result"]:
+                if item["type"] == "labels":
+                    label_list.append(
+                        (
+                            item["value"]["start"],
+                            item["value"]["end"],
+                            item["value"]["labels"][0],
+                        )
+                    )
+                    label_id = item["id"]
+                    label_value = item["value"]["text"]
                     label_data[label_id] = label_value
-                elif item['type'] == 'relation':
-                    from_id = item['from_id']
-                    to_id = item['to_id']
-                    relation_labels = item['labels']
+                elif item["type"] == "relation":
+                    from_id = item["from_id"]
+                    to_id = item["to_id"]
+                    relation_labels = item["labels"]
                     if from_id in label_data and to_id in label_data:
-                        relation_data[(label_data[from_id], label_data[to_id])] = relation_labels
-            training_data.append((data['data']['text'], label_list))
-            
+                        relation_data[
+                            (label_data[from_id], label_data[to_id])
+                        ] = relation_labels
+            training_data.append((data["data"]["text"], label_list))
+
         return training_data, relation_data
+<<<<<<< HEAD
     
     def preprocess_spacy(self, training_data, split_ratio=0.8):
+=======
+
+    def preprocess_spacy(self, training_data):
+>>>>>>> 9a557db3040c314f9007b36a8cdfff95a5adfbca
         nlp = spacy.blank("en")
         
         # Shuffle the training data to ensure randomness
