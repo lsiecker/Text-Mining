@@ -42,7 +42,7 @@ class Preprocessor:
 
     def loadFile(self, name, basedir=ROOT_DIR):
         file_path = os.path.join(basedir, "data\\", name)
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
         return data
 
@@ -168,30 +168,42 @@ class Preprocessor:
         training_data = []
 
         for data in export_data:
-            label_list = []
-            for item in data["annotations"][0]["result"]:
-                if item["type"] == "labels":
-                    label_list.append(
-                        (
-                            item["value"]["start"],
-                            item["value"]["end"],
-                            item["value"]["labels"][0],
+            for user in data["annotations"]:
+                for item in user["result"]:
+                    label_list = []
+                    if item["type"] == "labels":
+                        label_list.append(
+                            (
+                                item["value"]["start"],
+                                item["value"]["end"],
+                                item["value"]["labels"][0],
+                            )
                         )
-                    )
-                    label_id = item["id"]
-                    label_value = item["value"]["text"]
-                    label_data[label_id] = label_value
-                elif item["type"] == "relation":
-                    from_id = item["from_id"]
-                    to_id = item["to_id"]
-                    relation_labels = item["labels"]
-                    if from_id in label_data and to_id in label_data:
-                        relation_data[
-                            (label_data[from_id], label_data[to_id])
-                        ] = relation_labels
-            training_data.append((data["data"]["text"], label_list))
+                        label_id = item["id"]
+                        label_value = item["value"]["text"]
+                        label_data[label_id] = label_value
+                    elif item["type"] == "relation":
+                        from_id = item["from_id"]
+                        to_id = item["to_id"]
+                        relation_labels = item["labels"]
+                        if from_id in label_data and to_id in label_data:
+                            relation_data[
+                                (label_data[from_id], label_data[to_id])
+                            ] = relation_labels
+                    if label_list != []:
+                        training_data.append((data["data"]["text"], label_list))
 
         return training_data, relation_data
+
+    # Check for overlapping entities
+    def check_overlap(entities):
+        for i, (start1, end1, label1) in enumerate(entities):
+            for j, (start2, end2, label2) in enumerate(entities):
+                if i != j:
+                    if start1 < end2 and start2 < end1:
+                        print(
+                            f"Overlapping entities: {label1} ({start1}-{end1}) and {label2} ({start2}-{end2})"
+                        )
 
     def preprocess_spacy(self, training_data, split_ratio=0.8, warn=False):
         nlp = spacy.blank("en")
