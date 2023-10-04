@@ -1,0 +1,38 @@
+create-config:
+  cmd: python -m weasel run create-config
+  script:
+    - python scripts/create_config.py en_core_web_sm ner configs/config.cfg
+  deps:
+    - path: scripts/create_config.py
+      md5: 690ed80ea95bb4a9f087f04be57c1b14
+  outs:
+    - path: configs/config.cfg
+      md5: 3cca7cc068e5302121dd239386824faf
+train:
+  cmd: python -m weasel run train
+  script:
+    - python -m spacy train configs/config.cfg --output training/ --paths.train corpus/train.spacy
+      --paths.dev corpus/dev.spacy --training.eval_frequency 10 --training.max_steps
+      500 --training.patience 50 --gpu-id -1
+  deps:
+    - path: configs/config.cfg
+      md5: 3cca7cc068e5302121dd239386824faf
+    - path: corpus/train.spacy
+      md5: 5717d573741e0982aa9be0e6c0faaf25
+    - path: corpus/dev.spacy
+      md5: 0f26fe8cf05426edf054c9a4644e8928
+  outs:
+    - path: training/model-best
+      md5: 828e1a5192741af84b258c9c8543c881
+evaluate:
+  cmd: python -m weasel run evaluate
+  script:
+    - python -m spacy evaluate training/model-best corpus/dev.spacy --output training/metrics.json
+  deps:
+    - path: corpus/dev.spacy
+      md5: 0f26fe8cf05426edf054c9a4644e8928
+    - path: training/model-best
+      md5: 828e1a5192741af84b258c9c8543c881
+  outs:
+    - path: training/metrics.json
+      md5: ef44338865f86176c1aaafafa279a5f2

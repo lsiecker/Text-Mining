@@ -195,16 +195,6 @@ class Preprocessor:
 
         return training_data, relation_data
 
-    # Check for overlapping entities
-    def check_overlap(entities):
-        for i, (start1, end1, label1) in enumerate(entities):
-            for j, (start2, end2, label2) in enumerate(entities):
-                if i != j:
-                    if start1 < end2 and start2 < end1:
-                        print(
-                            f"Overlapping entities: {label1} ({start1}-{end1}) and {label2} ({start2}-{end2})"
-                        )
-
     def preprocess_spacy(self, training_data, split_ratio=0.8, warn=False):
         nlp = spacy.blank("en")
 
@@ -229,10 +219,13 @@ class Preprocessor:
                         warnings.warn(msg)
                 else:
                     ents.append(span)
-            doc.ents = ents
-            train_db.add(doc)
 
-        train_save_path = os.path.join(ROOT_DIR, "data", "train.spacy")
+            if ents != []:
+                doc.ents = ents
+                print(doc.ents, doc.ents[0].label_)
+                train_db.add(doc)
+
+        train_save_path = os.path.join(ROOT_DIR, "spacy/corpus", "train.spacy")
         train_db.to_disk(train_save_path)
 
         # Create dev.spacy
@@ -247,5 +240,5 @@ class Preprocessor:
             doc.ents = ents
             dev_db.add(doc)
 
-        dev_save_path = os.path.join(ROOT_DIR, "data", "dev.spacy")
+        dev_save_path = os.path.join(ROOT_DIR, "spacy/corpus", "dev.spacy")
         dev_db.to_disk(dev_save_path)
