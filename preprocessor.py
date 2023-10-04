@@ -8,6 +8,8 @@ import json
 from tqdm import tqdm, trange
 import multiprocessing
 import re
+import nltk
+from nltk.tokenize import sent_tokenize
 
 
 # Set the root directory of the project
@@ -194,6 +196,69 @@ class Preprocessor:
                         training_data.append((data["data"]["text"], label_list))
 
         return training_data, relation_data
+    
+    def process_export_sentences(self, export_data):
+        # Create dictionaries to store labels and their relations
+        label_data = {}
+        relation_data = {}
+        training_data = []
+
+        # Download the necessary NLTK data for sentence splitting
+        nltk.download('punkt')
+
+        for data in export_data:
+            text = data["data"]["text"]
+            sentences = sent_tokenize(text)  # Split the text into sentences
+
+            # Initialize a list to store label_list for each sentence
+            sentence_label_lists = [[] for _ in sentences]
+
+            for user in data["annotations"]:
+                for item in user["result"]:
+                    label_list = []
+                    if item["type"] == "labels":
+                        label_list.append(
+                            (
+                                item["value"]["start"],
+                                item["value"]["end"],
+                                item["value"]["labels"][0],
+                            )
+                        )
+                        label_id = item["id"]
+                        label_value = item["value"]["text"]
+                        label_data[label_id] = label_value
+                    elif item["type"] == "relation":
+                        from_id = item["from_id"]
+                        to_id = item["to_id"]
+                        relation_labels = item["labels"]
+                        if from_id in label_data and to_id in label_data:
+                            relation_data[
+                                (label_data[from_id], label_data[to_id])
+                            ] = relation_labels
+
+                    if label_list != []:
+                        # Calculate sentence-level label locations
+                        for i, sentence in enumerate(sentences):
+                            sentence_start = text.find(sentence)
+                            sentence_end = sentence_start + len(sentence)
+                            sentence_label_list = []
+                            for start, end, label in label_list:
+                                if sentence_start <= start < sentence_end and sentence_start < end <= sentence_end:
+                                    sentence_label_list.append(
+                                        (
+                                            start - sentence_start,
+                                            end - sentence_start,
+                                            label,
+                                        )
+                                    )
+                            sentence_label_lists[i].extend(sentence_label_list)
+
+            # Combine each sentence with its corresponding label_list
+            for sentence, sentence_label_list in zip(sentences, sentence_label_lists):
+                if sentence_label_list != []:
+                    training_data.append((sentence, sentence_label_list))
+
+        return training_data, relation_data
 
     # Check for overlapping entities
     def check_overlap(entities):
@@ -209,7 +274,7 @@ class Preprocessor:
         nlp = spacy.blank("en")
 
         # Shuffle the training data to ensure randomness
-        random.shuffle(training_data)
+        # random.shuffle(training_data)
 
         # Split the data into training and development sets
         split_index = int(len(training_data) * split_ratio)
