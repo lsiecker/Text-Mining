@@ -144,7 +144,6 @@
       "QUANTITY",
       "TIME",
       "WORK_OF_ART",
-      "animal",
       "component",
       "condition",
       "date",
@@ -153,7 +152,8 @@
       "number",
       "occupation",
       "people",
-      "type"
+      "type",
+      "unit"
     ]
   },
   "pipeline":[
@@ -194,7 +194,17 @@
         "r":0.0,
         "f":0.0
       },
+      "type":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
+      },
       "component":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
+      },
+      "condition":{
         "p":0.0,
         "r":0.0,
         "f":0.0
@@ -204,12 +214,27 @@
         "r":0.0,
         "f":0.0
       },
-      "type":{
+      "number":{
         "p":0.0,
         "r":0.0,
         "f":0.0
       },
-      "number":{
+      "person_name":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
+      },
+      "people":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
+      },
+      "date":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
+      },
+      "occupation":{
         "p":0.0,
         "r":0.0,
         "f":0.0
@@ -220,7 +245,7 @@
         "f":0.0
       }
     },
-    "speed":7908.5111853887,
-    "ner_loss":20.0011583026
+    "speed":9188.8756887968,
+    "ner_loss":22.0054475098
   }
 }
