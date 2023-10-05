@@ -196,7 +196,7 @@ class Preprocessor:
                         training_data.append((data["data"]["text"], label_list))
 
         return training_data, relation_data
-    
+
     def process_export_sentences(self, export_data):
         # Create dictionaries to store labels and their relations
         label_data = {}
@@ -204,7 +204,7 @@ class Preprocessor:
         training_data = []
 
         # Download the necessary NLTK data for sentence splitting
-        nltk.download('punkt')
+        nltk.download("punkt")
 
         for data in export_data:
             text = data["data"]["text"]
@@ -215,15 +215,12 @@ class Preprocessor:
 
             for user in data["annotations"]:
                 for item in user["result"]:
-                    label_list = []
                     if item["type"] == "labels":
-                        label_list.append(
-                            (
-                                item["value"]["start"],
-                                item["value"]["end"],
-                                item["value"]["labels"][0],
-                            )
-                        )
+                        label_list = [
+                            item["value"]["start"],
+                            item["value"]["end"],
+                            item["value"]["labels"][0],
+                        ]
                         label_id = item["id"]
                         label_value = item["value"]["text"]
                         label_data[label_id] = label_value
@@ -242,23 +239,41 @@ class Preprocessor:
                             sentence_start = text.find(sentence)
                             sentence_end = sentence_start + len(sentence)
                             sentence_label_list = []
-                            for start, end, label in label_list:
-                                if sentence_start <= start < sentence_end and sentence_start < end <= sentence_end:
-                                    sentence_label_list.append(
-                                        (
-                                            start - sentence_start,
-                                            end - sentence_start,
-                                            label,
-                                        )
-                                    )
+                            if (
+                                sentence_start <= label_list[0] < sentence_end
+                                and sentence_start < label_list[1] <= sentence_end
+                            ):
+                                sentence_label_list = [
+                                    [
+                                        label_list[0] - sentence_start,
+                                        label_list[1] - sentence_start,
+                                        label_list[2],
+                                    ]
+                                ]
                             sentence_label_lists[i].extend(sentence_label_list)
 
             # Combine each sentence with its corresponding label_list
             for sentence, sentence_label_list in zip(sentences, sentence_label_lists):
                 if sentence_label_list != []:
-                    training_data.append((sentence, sentence_label_list))
+                    training_data.append([sentence, {"entities": sentence_label_list}])
 
         return training_data, relation_data
+
+    def preprocess_json(self, training_data, split_ratio=0.8):
+        # Split the data into training and development sets
+        split_index = int(len(training_data) * split_ratio)
+        train_data = training_data[:split_index]
+        dev_data = training_data[split_index:]
+
+        train_save_path = os.path.join(ROOT_DIR, "spacy/assets", "train.json")
+        with open(train_save_path, "w") as file:
+            # Save article text to file
+            json.dump(train_data, file)
+
+        dev_save_path = os.path.join(ROOT_DIR, "spacy/assets", "dev.json")
+        with open(dev_save_path, "w") as file:
+            # Save article text to file
+            json.dump(dev_data, file)
 
     def preprocess_spacy(self, training_data, split_ratio=0.8, warn=False):
         nlp = spacy.blank("en")
@@ -274,7 +289,7 @@ class Preprocessor:
         # Create train.spacy
         train_db = DocBin()
         for text, annotations in train_data:
-            doc = nlp(text)
+            doc = nlp.make_doc(text)
             ents = []
             for start, end, label in annotations:
                 span = doc.char_span(start, end, label=label)
@@ -284,11 +299,13 @@ class Preprocessor:
                         warnings.warn(msg)
                 else:
                     ents.append(span)
-
-            if ents != []:
+            try:
                 doc.ents = ents
-                print(doc.ents, doc.ents[0].label_)
-                train_db.add(doc)
+            except:
+                print(
+                    f"Unable to set doc ents, since there is overlap of {ents} in existing doc.ents"
+                )
+            train_db.add(doc)
 
         train_save_path = os.path.join(ROOT_DIR, "spacy/corpus", "train.spacy")
         train_db.to_disk(train_save_path)
@@ -306,7 +323,12 @@ class Preprocessor:
                         warnings.warn(msg)
                 else:
                     ents.append(span)
-            doc.ents = ents
+            try:
+                doc.ents = ents
+            except:
+                print(
+                    f"Unable to set doc ents, since there is overlap of {ents} in existing doc.ents"
+                )
             dev_db.add(doc)
 
         dev_save_path = os.path.join(ROOT_DIR, "spacy/corpus", "dev.spacy")
