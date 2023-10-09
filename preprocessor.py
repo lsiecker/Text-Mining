@@ -11,6 +11,9 @@ import re
 import nltk
 from nltk.tokenize import sent_tokenize
 
+# Download the necessary NLTK data for sentence splitting
+nltk.download("punkt")
+
 
 # Set the root directory of the project
 ROOT_DIR = os.path.dirname(
@@ -203,9 +206,6 @@ class Preprocessor:
         relation_data = {}
         training_data = []
 
-        # Download the necessary NLTK data for sentence splitting
-        nltk.download("punkt")
-
         for data in export_data:
             text = data["data"]["text"]
             sentences = sent_tokenize(text)  # Split the text into sentences
@@ -224,6 +224,26 @@ class Preprocessor:
                         label_id = item["id"]
                         label_value = item["value"]["text"]
                         label_data[label_id] = label_value
+                        
+                        if label_list != []:
+                            # Calculate sentence-level label locations
+                            for i, sentence in enumerate(sentences):
+                                sentence_start = text.find(sentence)
+                                sentence_end = sentence_start + len(sentence)
+                                sentence_label_list = []
+                                if (
+                                    sentence_start <= label_list[0] < sentence_end
+                                    and sentence_start < label_list[1] <= sentence_end
+                                ):
+                                    sentence_label_list = [
+                                        [
+                                            label_list[0] - sentence_start,
+                                            label_list[1] - sentence_start,
+                                            label_list[2],
+                                        ]
+                                    ]
+                                sentence_label_lists[i].extend(sentence_label_list)
+                            
                     elif item["type"] == "relation":
                         from_id = item["from_id"]
                         to_id = item["to_id"]
@@ -233,29 +253,10 @@ class Preprocessor:
                                 (label_data[from_id], label_data[to_id])
                             ] = relation_labels
 
-                    if label_list != []:
-                        # Calculate sentence-level label locations
-                        for i, sentence in enumerate(sentences):
-                            sentence_start = text.find(sentence)
-                            sentence_end = sentence_start + len(sentence)
-                            sentence_label_list = []
-                            if (
-                                sentence_start <= label_list[0] < sentence_end
-                                and sentence_start < label_list[1] <= sentence_end
-                            ):
-                                sentence_label_list = [
-                                    [
-                                        label_list[0] - sentence_start,
-                                        label_list[1] - sentence_start,
-                                        label_list[2],
-                                    ]
-                                ]
-                            sentence_label_lists[i].extend(sentence_label_list)
-
             # Combine each sentence with its corresponding label_list
-            for sentence, sentence_label_list in zip(sentences, sentence_label_lists):
-                if sentence_label_list != []:
-                    training_data.append([sentence, {"entities": sentence_label_list}])
+            for sent, sent_label_list in zip(sentences, sentence_label_lists):
+                if sent_label_list != []:
+                    training_data.append([sent, {"entities": sent_label_list}])
 
         return training_data, relation_data
 
