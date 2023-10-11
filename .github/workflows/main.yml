@@ -1,0 +1,62 @@
+name: Create Branches for Existing Issues
+
+on:
+  workflow_dispatch:  # This event allows manual triggering of the workflow
+
+jobs:
+  create-branches:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14  # You can adjust the Node.js version as needed
+
+    - name: Install dependencies
+      run: npm install @actions/core @actions/github octokit/request-action@v1
+
+    - name: List issues
+      id: list-issues
+      run: |
+        const core = require('@actions/core');
+        const github = require('@actions/github');
+        const octokit = new github.GitHub(core.getInput('github-token'));
+        const owner = github.context.repo.owner;
+        const repo = github.context.repo.repo;
+
+        const issues = octokit.issues.listForRepo({
+          owner,
+          repo,
+          state: 'open',  // You can adjust this to 'closed' or 'all' as needed
+        });
+
+        core.setOutput('issues', JSON.stringify(issues.data));
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create branches
+      run: |
+        const core = require('@actions/core');
+        const github = require('@actions/github');
+        const octokit = new github.GitHub(core.getInput('github-token'));
+
+        const issues = JSON.parse(core.getInput('issues'));
+
+        for (const issue of issues) {
+          // Generate a branch name based on the issue number or title
+          const branchName = `issue-${issue.number}-${issue.title.replace(/\s+/g, '-').toLowerCase()}`;
+
+          // Create a new branch
+          octokit.git.createRef({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            ref: `refs/heads/${branchName}`,
+            sha: github.context.sha, // Use the default branch's SHA here
+          });
+        }
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
