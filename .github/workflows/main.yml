@@ -16,9 +16,6 @@ jobs:
       with:
         node-version: 14  # You can adjust the Node.js version as needed
 
-    - name: Install dependencies
-      run: npm install @actions/core @actions/github octokit/request-action@v1
-
     - name: List issues
       id: list-issues
       run: |
