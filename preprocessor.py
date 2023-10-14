@@ -120,21 +120,33 @@ class Preprocessor:
                         ):
                             self.shared_page_dictionary.append(info_dict)
                             break
+        return list(self.shared_page_dictionary)
 
-    def process_file_title(self, file_path, title):
+    def process_file_regex(self, file_path, title_based, title, landmarks):
         # Load the JSON data
         with open(file_path, "r", encoding="utf-8") as file:
             for line in file:
                 info_dict = json.loads(line)
-                if (
-                    title in info_dict["text"]
-                    and info_dict not in self.shared_page_dictionary
-                    and info_dict["text"] != ""
-                ):
-                    self.shared_page_dictionary.append(info_dict)
+                if title_based:
+                    if (
+                        title in info_dict["text"]
+                        and info_dict not in self.shared_page_dictionary
+                        and info_dict["text"] != ""
+                    ):
+                        self.shared_page_dictionary.append(info_dict)
+                else:
+                    for landmark in landmarks:
+                        if (
+                            info_dict["title"] in landmark
+                            and info_dict not in self.shared_page_dictionary
+                            and info_dict["text"] != ""
+                        ):
+                            self.shared_page_dictionary.append(info_dict)
+                            break
+                    
 
     def process_folder(
-        self, folder, landmark_embeddings, debug, title, nlp, datadir=DATA_PATH
+        self, folder, debug, title, title_based, landmarks, datadir=DATA_PATH
     ):
         """
         Process all files in a folder in a specific directory. Threads are used to speed up the process.
@@ -152,10 +164,7 @@ class Preprocessor:
         for file_nr, filename in enumerate(os.listdir(folder_path)):
             file_path = os.path.join(folder_path, filename)
 
-            if nlp:
-                self.process_file_nlp(file_path, landmark_embeddings)
-            else:
-                self.process_file_title(file_path, title)
+            self.process_file_regex(file_path, title_based, title, landmarks)
 
             if debug:
                 print(
