@@ -145,8 +145,8 @@ class Preprocessor:
                             break
                     
 
-    def process_folder(
-        self, folder, debug, title, title_based, landmarks, datadir=DATA_PATH
+    def process_folders(
+        self, folders, debug, title, title_based, landmarks, datadir=DATA_PATH
     ):
         """
         Process all files in a folder in a specific directory. Threads are used to speed up the process.
@@ -158,22 +158,23 @@ class Preprocessor:
         :param datadir: The directory where the data is stored
         :return: A list of the shared pages
         """
-        folder_path = os.path.join(datadir, folder)
-        num_files = len(os.listdir(folder_path))
+        for folder in folders:
+            folder_path = os.path.join(datadir, folder)
+            num_files = len(os.listdir(folder_path))
 
-        for file_nr, filename in enumerate(os.listdir(folder_path)):
-            file_path = os.path.join(folder_path, filename)
+            for file_nr, filename in enumerate(os.listdir(folder_path)):
+                file_path = os.path.join(folder_path, filename)
 
-            self.process_file_regex(file_path, title_based, title, landmarks)
+                self.process_file_regex(file_path, title_based, title, landmarks)
 
+                if debug:
+                    print(
+                        f"{file_nr+1}/{num_files} - Started processing '{filename}' in folder '{folder}'"
+                    )
             if debug:
-                print(
-                    f"{file_nr+1}/{num_files} - Started processing '{filename}' in folder '{folder}'"
-                )
-        if debug:
-            print(f"Folder {folder} is processed")
+                print(f"Folder {folder} is processed")
 
-        return list(self.shared_page_dictionary)
+            return self.shared_page_dictionary
 
     def process_export(self, export_data):
         # Create dictionaries to store labels and their relations
