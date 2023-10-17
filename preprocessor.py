@@ -175,6 +175,9 @@ class Preprocessor:
                 print(f"Folder {folder} is processed")
 
             return self.shared_page_dictionary
+        
+    def clear_dictionary(self):
+        self.shared_page_dictionary.clear()
 
     def process_export(self, export_data):
         # Create dictionaries to store labels and their relations
