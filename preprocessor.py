@@ -2,7 +2,6 @@ import warnings
 import ftfy
 import spacy
 from spacy.tokens import Doc, DocBin
-import random
 import os
 import json
 from tqdm import tqdm, trange
@@ -30,7 +29,18 @@ class Preprocessor:
         self.shared_page_dictionary = self.manager.list()
 
     def fix_unicode(self, data):
-        print("Cleaning data with ftfy...")
+        """
+        Function that cleans UNIX characters from a given article text and stores it in a new value stored under the 'text' key
+        
+        Input:
+            data (list): List of dictionaries where each dictionary represents 
+            a Wikipedia article and its metadata
+            
+        Output:
+            output (list): Returns a list of dictionaries where again 
+            each dictionary represents a Wikipedia article, but now with
+            an additional key-value pair with the cleaned article text.
+        """
         output = []
         for article in tqdm(data):
             text = article["text"]
@@ -41,6 +51,18 @@ class Preprocessor:
         return output
 
     def writeFile(self, data, name, basedir=ROOT_DIR):
+        """
+        Function that stores a dataset to a JSON file for a given name.
+        
+        Input:
+            data (list): List to be stored
+            name (str): Name of the stored file
+            basedir (str): path of the base directory
+            
+        Output:
+            None
+        
+        """
         file_path = os.path.join(basedir, "data\\", name)
         with open(file_path, "w") as file:
             json.dump(data, file, indent=2)
@@ -291,9 +313,6 @@ class Preprocessor:
 
     def preprocess_spacy(self, training_data, split_ratio=0.8, warn=False):
         nlp = spacy.blank("en")
-
-        # Shuffle the training data to ensure randomness
-        # random.shuffle(training_data)
 
         # Split the data into training and development sets
         split_index = int(len(training_data) * split_ratio)
