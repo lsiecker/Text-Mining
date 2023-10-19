@@ -1,5 +1,6 @@
 import warnings
 import ftfy
+import pandas as pd
 import spacy
 from spacy.tokens import Doc, DocBin
 import random
@@ -84,6 +85,15 @@ class Preprocessor:
             article["text"] = " ".join(char_words)
             cleaned_articles.append(article)
         return cleaned_articles
+
+    def clean_html(self, dataset: pd.DataFrame, column: str):
+        print("Cleaning data with ftfy...")
+        for i, text in enumerate(tqdm(dataset[column])):
+            text = re.sub(r"<.*?>", "", text)
+            text = ftfy.fix_text(text)
+            dataset.loc[i, column] = text
+
+        return dataset
 
     def ner_spacy(self, text):
         doc = self.nlp(text)
@@ -224,7 +234,7 @@ class Preprocessor:
                         label_id = item["id"]
                         label_value = item["value"]["text"]
                         label_data[label_id] = label_value
-                        
+
                         if label_list != []:
                             # Calculate sentence-level label locations
                             for i, sentence in enumerate(sentences):
@@ -243,7 +253,7 @@ class Preprocessor:
                                         ]
                                     ]
                                 sentence_label_lists[i].extend(sentence_label_list)
-                            
+
                     elif item["type"] == "relation":
                         from_id = item["from_id"]
                         to_id = item["to_id"]
