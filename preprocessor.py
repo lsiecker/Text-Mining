@@ -30,14 +30,11 @@ class Preprocessor:
 
     def fix_unicode(self, data):
         """
-        Function that cleans UNIX characters from a given article text and stores it in a new value stored under the 'text' key
+        Cleans UNIX characters from a given article text and stores it in a new value stored under the 'text' key
         
-        Input:
-            data (list): List of dictionaries where each dictionary represents 
+        :param data: List of dictionaries where each dictionary represents 
             a Wikipedia article and its metadata
-            
-        Output:
-            output (list): Returns a list of dictionaries where again 
+        :return: A list of dictionaries where again 
             each dictionary represents a Wikipedia article, but now with
             an additional key-value pair with the cleaned article text.
         """
@@ -52,15 +49,13 @@ class Preprocessor:
 
     def writeFile(self, data, name, basedir=ROOT_DIR):
         """
-        Function that stores a dataset to a JSON file for a given name.
+        Saves a dataset to a JSON file for a given name.
         
-        Input:
-            data (list): List to be stored
-            name (str): Name of the stored file
-            basedir (str): path of the base directory
-            
-        Output:
-            None
+        :param data: List of dictionaries where each dictionary represents
+            a Wikipedia article and its metadata
+        :param name: Name of the stored file
+        :param basedir: Path of the base directory
+        :return: None
         
         """
         file_path = os.path.join(basedir, "data\\", name)
@@ -68,12 +63,28 @@ class Preprocessor:
             json.dump(data, file, indent=2)
 
     def loadFile(self, name, basedir=ROOT_DIR):
+        """
+        Loads a dataset from a JSON file for a given name.
+        
+        :param name: Name of the stored file
+        :param basedir: Path of the base directory
+        :return: List of dictionaries where each dictionary represents
+            a Wikipedia article and its metadata
+        """
         file_path = os.path.join(basedir, "data\\", name)
         with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
         return data
 
     def save_file(self, data, folder):
+        """
+        Saves a dataset to multiple JSON files in a given folder.
+        
+        :param data: List of dictionaries where each dictionary represents
+            a Wikipedia article and its metadata
+        :param folder: Name of the folder where the files are stored
+        :return: None
+        """
         for i, article in enumerate(data):
             title = (
                 "".join(char for char in article["title"].lower() if char.isalnum())
@@ -93,7 +104,16 @@ class Preprocessor:
                 json.dump(to_dump, file)
 
     def clean_alphanumeric(self, data, pattern=r"\W+"):
-        print("Cleaning data with given regex...")
+        """
+        Cleans non-alphanumeric characters from a given article text and stores it in a new value stored under the 'text' key
+        
+        :param data: List of dictionaries where each dictionary represents
+            a Wikipedia article and its metadata
+        :param pattern: Regular expression pattern to split the text
+        :return: A list of dictionaries where again 
+            each dictionary represents a Wikipedia article, but now with
+            an additional key-value pair with the cleaned article text.
+        """
         cleaned_articles = []
 
         # Loop through each text in the list
@@ -108,21 +128,27 @@ class Preprocessor:
         return cleaned_articles
 
     def ner_spacy(self, text):
+        """
+        Process a text with the spacy nlp model.
+        
+        :param text: The text to be processed
+        :return: A document object
+        """
         doc = self.nlp(text)
         return doc
 
-    def process_file_nlp(self, file_path, landmark_embeddings):
+    def process_file_nlp(self, file_path, landmark_embeddings, similarity_threshold=0.97):
         """
-        Process a single file. This function is used by the process_folder function.
-
+        Process a file with the spacy nlp model. And check if the titles of the articles are similar to the landmark embeddings.
+        
         :param file_path: The path to the file that needs to be processed
         :param landmark_embeddings: A list of the landmark embeddings
-        :return: A list of the shared pages
+        :return: A list of the significantly similar pages
         """
-        print(f"Processing file {file_path}")
-        with open(file_path, "r") as file:
-            for line in tqdm(file, total=sum(1 for line in open(file_path, "r"))):
-                info_dict = json.loads(line)
+        shared_page_dictionary = self.manager.list()
+        with open(file_path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+            for info_dict in tqdm(data, total=len(data)):
 
                 # Handle every seperate wikipedia page
                 # Check if the title and the text are not empty strings
@@ -137,14 +163,24 @@ class Preprocessor:
                         similarity_score = title_embedding.similarity(landmark)
 
                         if (
-                            similarity_score > 0.97
-                            and info_dict not in self.shared_page_dictionary
+                            similarity_score > similarity_threshold
+                            and info_dict not in shared_page_dictionary
                         ):
-                            self.shared_page_dictionary.append(info_dict)
+                            shared_page_dictionary.append(info_dict)
                             break
-        return list(self.shared_page_dictionary)
+        return list(shared_page_dictionary)
 
     def process_file_regex(self, file_path, title_based, title, landmarks):
+        """
+        Process a file and either check if the titles of the articles occur in the landmark list
+            or check if the given title occurs in the article.
+        
+        :param file_path: The path to the file that needs to be processed
+        :param title_based: A boolean that indicates if the title_based method is used
+        :param title: The title of the landmark
+        :param landmarks: A list of the landmark names
+        :return: A list of the articles that were seen as relevant      
+        """
         # Load the JSON data
         with open(file_path, "r", encoding="utf-8") as file:
             for line in file:
@@ -196,46 +232,15 @@ class Preprocessor:
             if debug:
                 print(f"Folder {folder} is processed")
 
-            return self.shared_page_dictionary
-        
-    def clear_dictionary(self):
-        self.shared_page_dictionary.clear()
-
-    def process_export(self, export_data):
-        # Create dictionaries to store labels and their relations
-        label_data = {}
-        relation_data = {}
-        training_data = []
-
-        for data in export_data:
-            for user in data["annotations"]:
-                for item in user["result"]:
-                    label_list = []
-                    if item["type"] == "labels":
-                        label_list.append(
-                            (
-                                item["value"]["start"],
-                                item["value"]["end"],
-                                item["value"]["labels"][0],
-                            )
-                        )
-                        label_id = item["id"]
-                        label_value = item["value"]["text"]
-                        label_data[label_id] = label_value
-                    elif item["type"] == "relation":
-                        from_id = item["from_id"]
-                        to_id = item["to_id"]
-                        relation_labels = item["labels"]
-                        if from_id in label_data and to_id in label_data:
-                            relation_data[
-                                (label_data[from_id], label_data[to_id])
-                            ] = relation_labels
-                    if label_list != []:
-                        training_data.append((data["data"]["text"], label_list))
-
-        return training_data, relation_data
+        return list(self.shared_page_dictionary)
 
     def process_export_sentences(self, export_data):
+        """
+        Processes a Label studio export dataset and converts it to a training dataset and relational dataset.
+        
+        :param export_data: The Label studio export dataset with all annotations
+        :return: A list of the training data and a dictionary of the relations
+        """
         # Create dictionaries to store labels and their relations
         label_data = {}
         relation_data = {}
@@ -296,6 +301,13 @@ class Preprocessor:
         return training_data, relation_data
 
     def preprocess_json(self, training_data, split_ratio=0.8):
+        """
+        Create training and validation datasets from a training set and store them as json files.
+        
+        :param training_data: The training data
+        :param split_ratio: The ratio of the training data that is used for training
+        :return: None
+        """
         # Split the data into training and development sets
         split_index = int(len(training_data) * split_ratio)
         train_data = training_data[:split_index]
@@ -312,6 +324,14 @@ class Preprocessor:
             json.dump(dev_data, file)
 
     def preprocess_spacy(self, training_data, split_ratio=0.8, warn=False):
+        """
+        Save the training and validation datasets as spacy files for model building.
+        
+        :param training_data: The training data
+        :param split_ratio: The ratio of the training data that is used for training
+        :param warn: A boolean that indicates if warnings should be shown
+        :return: None
+        """
         nlp = spacy.blank("en")
 
         # Split the data into training and development sets
