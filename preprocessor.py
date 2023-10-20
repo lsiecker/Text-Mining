@@ -1,10 +1,11 @@
 import warnings
 import ftfy
+import pandas as pd
 import spacy
 from spacy.tokens import Doc, DocBin
 import os
 import json
-from tqdm import tqdm, trange
+from tqdm import tqdm
 import multiprocessing
 import re
 import nltk
@@ -22,13 +23,13 @@ DATA_PATH = os.path.join(ROOT_DIR, "data")
 
 
 class Preprocessor:
-    def __init__(self, basedir, spacy_lib="en_core_web_sm"):
+    def __init__(self, basedir: str = ROOT_DIR, spacy_lib: str = "en_core_web_sm"):
         self.nlp = spacy.load(spacy_lib)
         self.basedir = basedir
         self.manager = multiprocessing.Manager()
         self.shared_page_dictionary = self.manager.list()
 
-    def fix_unicode(self, data):
+    def fix_unicode(self, data: list):
         """
         Cleans UNIX characters from a given article text and stores it in a new value stored under the 'text' key
         
@@ -47,7 +48,7 @@ class Preprocessor:
             output.append(article)
         return output
 
-    def writeFile(self, data, name, basedir=ROOT_DIR):
+    def writeFile(self, data: list, name: str, basedir: str = ROOT_DIR):
         """
         Saves a dataset to a JSON file for a given name.
         
@@ -62,7 +63,7 @@ class Preprocessor:
         with open(file_path, "w") as file:
             json.dump(data, file, indent=2)
 
-    def loadFile(self, name, basedir=ROOT_DIR):
+    def loadFile(self, name: str, basedir: str = ROOT_DIR):
         """
         Loads a dataset from a JSON file for a given name.
         
@@ -76,7 +77,7 @@ class Preprocessor:
             data = json.load(file)
         return data
 
-    def save_file(self, data, folder):
+    def save_file(self, data: list, folder: str):
         """
         Saves a dataset to multiple JSON files in a given folder.
         
@@ -103,7 +104,7 @@ class Preprocessor:
                 # Save article text to file
                 json.dump(to_dump, file)
 
-    def clean_alphanumeric(self, data, pattern=r"\W+"):
+    def clean_alphanumeric(self, data: list, pattern=r"\W+"):
         """
         Cleans non-alphanumeric characters from a given article text and stores it in a new value stored under the 'text' key
         
@@ -126,8 +127,23 @@ class Preprocessor:
             article["text"] = " ".join(char_words)
             cleaned_articles.append(article)
         return cleaned_articles
+    
+    def clean_html(self, dataset: pd.DataFrame, column: str):
+        """
+        Cleans html tags from a given column in a dataset.
+        
+        :param dataset: The dataset that needs to be cleaned
+        :param column: The column that needs to be cleaned
+        :return: The cleaned dataset
+        """
+        for i, text in enumerate(tqdm(dataset[column])):
+            text = re.sub(r"<.*?>", "", text)
+            text = ftfy.fix_text(text)
+            dataset.loc[i, column] = text
 
-    def ner_spacy(self, text):
+        return dataset
+
+    def ner_spacy(self, text: str):
         """
         Process a text with the spacy nlp model.
         
@@ -137,7 +153,7 @@ class Preprocessor:
         doc = self.nlp(text)
         return doc
 
-    def process_file_nlp(self, file_path, landmark_embeddings, similarity_threshold=0.97):
+    def process_file_nlp(self, file_path: str, landmark_embeddings: list, similarity_threshold: float = 0.97):
         """
         Process a file with the spacy nlp model. And check if the titles of the articles are similar to the landmark embeddings.
         
@@ -170,7 +186,7 @@ class Preprocessor:
                             break
         return list(shared_page_dictionary)
 
-    def process_file_regex(self, file_path, title_based, title, landmarks):
+    def process_file_regex(self, file_path: str, title_based: bool, title: str, landmarks: list):
         """
         Process a file and either check if the titles of the articles occur in the landmark list
             or check if the given title occurs in the article.
@@ -204,7 +220,7 @@ class Preprocessor:
                     
 
     def process_folders(
-        self, folders, debug, title, title_based, landmarks, datadir=DATA_PATH
+        self, folders: list, debug: bool, title: str, title_based: bool, landmarks: list, datadir: str = DATA_PATH
     ):
         """
         Process all files in a folder in a specific directory. Threads are used to speed up the process.
@@ -234,7 +250,7 @@ class Preprocessor:
 
         return list(self.shared_page_dictionary)
 
-    def process_export_sentences(self, export_data):
+    def process_export_sentences(self, export_data: list):
         """
         Processes a Label studio export dataset and converts it to a training dataset and relational dataset.
         
@@ -300,7 +316,7 @@ class Preprocessor:
 
         return training_data, relation_data
 
-    def preprocess_json(self, training_data, split_ratio=0.8):
+    def preprocess_json(self, training_data: list, split_ratio: float = 0.8):
         """
         Create training and validation datasets from a training set and store them as json files.
         
@@ -323,7 +339,7 @@ class Preprocessor:
             # Save article text to file
             json.dump(dev_data, file)
 
-    def preprocess_spacy(self, training_data, split_ratio=0.8, warn=False):
+    def preprocess_spacy(self, training_data: list, split_ratio: float = 0.8, warn: bool = False):
         """
         Save the training and validation datasets as spacy files for model building.
         
