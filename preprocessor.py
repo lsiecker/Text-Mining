@@ -226,9 +226,11 @@ class Preprocessor:
         Process all files in a folder in a specific directory. Threads are used to speed up the process.
         Every file is processed in a separate thread.
 
-        :param folder: The folder that needs to be processed
-        :param landmark_embeddings: A list of the landmark embeddings
+        :param folders: The folders that needs to be processed
         :param debug: A boolean that indicates if the debug mode is on
+        :param title: The title of the landmark
+        :param title_based: A boolean that indicates if the title_based method is used
+        :param landmarks: A list of the landmark embeddings
         :param datadir: The directory where the data is stored
         :return: A list of the shared pages
         """
