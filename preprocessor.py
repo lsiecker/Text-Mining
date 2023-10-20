@@ -280,7 +280,7 @@ class Preprocessor:
                         label_id = item["id"]
                         label_value = item["value"]["text"]
                         label_data[label_id] = label_value
-                        
+
                         if label_list != []:
                             # Calculate sentence-level label locations
                             for i, sentence in enumerate(sentences):
@@ -299,7 +299,7 @@ class Preprocessor:
                                         ]
                                     ]
                                 sentence_label_lists[i].extend(sentence_label_list)
-                            
+
                     elif item["type"] == "relation":
                         from_id = item["from_id"]
                         to_id = item["to_id"]
