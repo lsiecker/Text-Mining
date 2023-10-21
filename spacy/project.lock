@@ -29,18 +29,17 @@ train:
   cmd: python -m weasel run train
   script:
     - python -m spacy train configs/config.cfg --output training/ --paths.train corpus/train.spacy
-      --paths.dev corpus/dev.spacy --training.eval_frequency 10 --training.max_steps
-      500 --training.patience 50 --gpu-id -1
+      --paths.dev corpus/dev.spacy
   deps:
     - path: configs/config.cfg
-      md5: 7ef5f1ebef995cb420e49b5a28ff987e
+      md5: 80860bcdfa121588b292c8a3b866506d
     - path: corpus/train.spacy
       md5: 2de6ecf91f2fb33a2dd2fb7b711b39b2
     - path: corpus/dev.spacy
       md5: 20cb63a3e01d39e57b8d02e0f4b85940
   outs:
     - path: training/model-best
-      md5: 950f81b9e3dc3a4d094a2b7225777a3b
+      md5: 3f6361d1bb5ea110b16610e5593f206b
 evaluate:
   cmd: python -m weasel run evaluate
   script:
@@ -49,7 +48,7 @@ evaluate:
     - path: corpus/dev.spacy
       md5: 20cb63a3e01d39e57b8d02e0f4b85940
     - path: training/model-best
-      md5: 7a49a31e78aac562ea4e0a5bc3bb4b48
+      md5: 3f6361d1bb5ea110b16610e5593f206b
   outs:
     - path: training/metrics.json
-      md5: 9d202d5311613bd2756b182f0e379456
+      md5: 14eec3b533aba9b90ccdaf585b913268
