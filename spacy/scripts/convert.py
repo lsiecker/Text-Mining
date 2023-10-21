@@ -24,6 +24,7 @@ def convert(lang: str, input_path: Path, output_path: Path):
                 ents.append(span)
         doc.ents = ents
         db.add(doc)
+    print(output_path)
     db.to_disk(output_path)
 
 

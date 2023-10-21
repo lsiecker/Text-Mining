@@ -4,10 +4,27 @@ create-config:
     - python scripts/create_config.py en_core_web_sm ner configs/config.cfg
   deps:
     - path: scripts/create_config.py
-      md5: 690ed80ea95bb4a9f087f04be57c1b14
+      md5: e52eab279f8b3a1fd5a216f5a1f294a1
   outs:
     - path: configs/config.cfg
       md5: 3cca7cc068e5302121dd239386824faf
+convert:
+  cmd: python -m weasel run convert
+  script:
+    - python scripts/convert.py en assets/train.json corpus/train.spacy
+    - python scripts/convert.py en assets/dev.json corpus/dev.spacy
+  deps:
+    - path: assets/train.json
+      md5: 836cd4f508b28d3d7f32e3b2bf87ee10
+    - path: assets/dev.json
+      md5: cf1bb4c0169479107d6cab2d10b7edca
+    - path: scripts/convert.py
+      md5: e4b76279a5f6aa98035dc9e8be0c8ace
+  outs:
+    - path: corpus/train.spacy
+      md5: 2de6ecf91f2fb33a2dd2fb7b711b39b2
+    - path: corpus/dev.spacy
+      md5: 20cb63a3e01d39e57b8d02e0f4b85940
 train:
   cmd: python -m weasel run train
   script:
@@ -16,40 +33,23 @@ train:
       500 --training.patience 50 --gpu-id -1
   deps:
     - path: configs/config.cfg
-      md5: e3fbe2c9dcb31644c25111beaa6c5d78
+      md5: 7ef5f1ebef995cb420e49b5a28ff987e
     - path: corpus/train.spacy
-      md5: 8e98c09083b3372504c3cc90d6227455
+      md5: 2de6ecf91f2fb33a2dd2fb7b711b39b2
     - path: corpus/dev.spacy
-      md5: 7aae549390702a35dece6095078e1d86
+      md5: 20cb63a3e01d39e57b8d02e0f4b85940
   outs:
     - path: training/model-best
-      md5: 06a1cff0a62cb70c9548c9f3e717c964
+      md5: 950f81b9e3dc3a4d094a2b7225777a3b
 evaluate:
   cmd: python -m weasel run evaluate
   script:
     - python -m spacy evaluate training/model-best corpus/dev.spacy --output training/metrics.json
   deps:
     - path: corpus/dev.spacy
-      md5: 7aae549390702a35dece6095078e1d86
+      md5: 20cb63a3e01d39e57b8d02e0f4b85940
     - path: training/model-best
-      md5: 06a1cff0a62cb70c9548c9f3e717c964
+      md5: 7a49a31e78aac562ea4e0a5bc3bb4b48
   outs:
     - path: training/metrics.json
-      md5: d3cf6c5a8f6bdc51f29377d2bdfd9f99
-convert:
-  cmd: python -m weasel run convert
-  script:
-    - python scripts/convert.py en assets/train.json corpus/train.spacy
-    - python scripts/convert.py en assets/dev.json corpus/dev.spacy
-  deps:
-    - path: assets/train.json
-      md5: e9f7207c6a81ff941ca9a0f93769bfe2
-    - path: assets/dev.json
-      md5: 9eb2b5041b53872dc795db2bddeffbd2
-    - path: scripts/convert.py
-      md5: 26a5ca230fbbafa8c01c5c85c46bea74
-  outs:
-    - path: corpus/train.spacy
-      md5: 8e98c09083b3372504c3cc90d6227455
-    - path: corpus/dev.spacy
-      md5: 7aae549390702a35dece6095078e1d86
+      md5: 9d202d5311613bd2756b182f0e379456
