@@ -203,7 +203,8 @@ class Preprocessor:
     def process_export_sentences(self, export_data):
         # Create dictionaries to store labels and their relations
         label_data = {}
-        relation_data = {}
+        relational_label_list = []
+        relation_data = []
         training_data = []
 
         for data in export_data:
@@ -212,6 +213,7 @@ class Preprocessor:
 
             # Initialize a list to store label_list for each sentence
             sentence_label_lists = [[] for _ in sentences]
+            total_label_list = []
 
             for user in data["annotations"]:
                 for item in user["result"]:
@@ -224,7 +226,7 @@ class Preprocessor:
                         label_id = item["id"]
                         label_value = item["value"]["text"]
                         label_data[label_id] = label_value
-                        
+
                         if label_list != []:
                             # Calculate sentence-level label locations
                             for i, sentence in enumerate(sentences):
@@ -243,20 +245,36 @@ class Preprocessor:
                                         ]
                                     ]
                                 sentence_label_lists[i].extend(sentence_label_list)
-                            
+                                total_label_list.extend(sentence_label_list)
+
                     elif item["type"] == "relation":
                         from_id = item["from_id"]
                         to_id = item["to_id"]
                         relation_labels = item["labels"]
                         if from_id in label_data and to_id in label_data:
-                            relation_data[
-                                (label_data[from_id], label_data[to_id])
-                            ] = relation_labels
+                            relational_label_list.append(
+                                [
+                                    label_data[from_id],
+                                    label_data[to_id],
+                                    relation_labels,
+                                ]
+                            )
 
             # Combine each sentence with its corresponding label_list
             for sent, sent_label_list in zip(sentences, sentence_label_lists):
                 if sent_label_list != []:
                     training_data.append([sent, {"entities": sent_label_list}])
+
+            # Combine text with its corresponding relation labels
+            relation_data.append(
+                [
+                    text,
+                    {
+                        "entities": sentence_label_lists,
+                        "relations": relational_label_list,
+                    },
+                ]
+            )
 
         return training_data, relation_data
 
@@ -334,3 +352,6 @@ class Preprocessor:
 
         dev_save_path = os.path.join(ROOT_DIR, "spacy/corpus", "dev.spacy")
         dev_db.to_disk(dev_save_path)
+
+    def preprocess_relationships(relational_data):
+        pass

@@ -15,14 +15,34 @@ def convert(lang: str, input_path: Path, output_path: Path):
     for text, annot in srsly.read_json(input_path):
         doc = nlp.make_doc(text)
         ents = []
-        for start, end, label in annot["entities"]:
-            span = doc.char_span(start, end, label=label)
-            if span is None:
-                msg = f"Skipping entity [{start}, {end}, {label}] in the following text because the character span '{doc.text[start:end]}' does not align with token boundaries:\n\n{repr(text)}\n"
-                warnings.warn(msg)
-            else:
-                ents.append(span)
-        doc.ents = ents
+        relations = []
+        print(annot["entities"])
+        for entity in annot["entities"]:
+            for start, end, label in entity:
+                span = doc.char_span(start, end, label=label)
+                if span is None:
+                    msg = f"Skipping entity [{start}, {end}, {label}] in the following text because the character span '{doc.text[start:end]}' does not align with token boundaries:\n\n{repr(text)}\n"
+                    warnings.warn(msg)
+                else:
+                    ents.append(span)
+        for rel in annot["relations"]:
+            for start, end, label in rel:
+                span = doc.char_span(start, end, label=label)
+                if span is None:
+                    msg = f"Skipping relation [{start}, {end}, {label}] in the following text because the character span '{doc.text[start:end]}' does not align with token boundaries:\n\n{repr(text)}\n"
+                    warnings.warn(msg)
+                else:
+                    relations.append(span)
+        try:
+            doc.ents = ents
+        except ValueError as e:
+            msg = f"Skipping the following text because of a problem with the entities: {repr(text)}\n\n{e}"
+            warnings.warn(msg)
+        try:
+            doc._.rel = relations
+        except ValueError as e:
+            msg = f"Skipping the following text because of a problem with the relations: {repr(text)}\n\n{e}"
+            warnings.warn(msg)
         db.add(doc)
     db.to_disk(output_path)
 

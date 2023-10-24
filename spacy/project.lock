@@ -43,13 +43,13 @@ convert:
     - python scripts/convert.py en assets/dev.json corpus/dev.spacy
   deps:
     - path: assets/train.json
-      md5: e9f7207c6a81ff941ca9a0f93769bfe2
+      md5: 67b5f05699de745dfd58223378159d91
     - path: assets/dev.json
-      md5: 9eb2b5041b53872dc795db2bddeffbd2
+      md5: 283afd74544b1504bbb291f46c4b0ac8
     - path: scripts/convert.py
-      md5: 26a5ca230fbbafa8c01c5c85c46bea74
+      md5: 5fa5e20328f13da75d85b1879ec24321
   outs:
     - path: corpus/train.spacy
-      md5: 8e98c09083b3372504c3cc90d6227455
+      md5: f043ff202d20d2e2195f7f7aaff2bf02
     - path: corpus/dev.spacy
-      md5: 7aae549390702a35dece6095078e1d86
+      md5: 3c340bde6de95f9111fb7f325e30de7b
