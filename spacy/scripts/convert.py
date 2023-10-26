@@ -10,13 +10,12 @@ from spacy.tokens import DocBin
 
 
 def convert(lang: str, input_path: Path, output_path: Path):
-    nlp = spacy.blank(lang)         # empty nlp object initialized     
-    db = DocBin()                   # store processed text data, often in binary format
-    print(input_path, "QQQQQQQQQQQq")
+    nlp = spacy.blank(lang)  # empty nlp object initialized
+    db = DocBin()  # store processed text data, often in binary format
     for text, annot in srsly.read_json(input_path):
         doc = nlp.make_doc(text)
+        doc.set_extension("rel", default={})
         ents = []
-        span_starts = set()
         relations = []
 
         for entity in annot["entities"]:
@@ -28,21 +27,15 @@ def convert(lang: str, input_path: Path, output_path: Path):
                     warnings.warn(msg)
                 else:
                     ents.append(span)
-        # parse the relations
-        # rels = {}
-        # for x1 in span_starts:
-        #     for x2 in span_starts:
-        #         rels[(x1,x2)] = {}
 
-
-        # for rel in annot["relations"]:
-        #     for start, end, label in rel: 
-        #         span = doc.char_span(start, end, label=label)
-        #         if span is None:
-        #             msg = f"Skipping relation [{start}, {end}, {label}] in the following text because the character span '{doc.text[start:end]}' does not align with token boundaries:\n\n{repr(text)}\n"
-        #             warnings.warn(msg)
-        #         else:
-        #             relations.append(span)
+        for rel in annot["relations"]:
+            for start, end, label in rel:
+                span = doc.char_span(start, end, label=label)
+                if span is None:
+                    msg = f"Skipping relation [{start}, {end}, {label}] in the following text because the character span '{doc.text[start:end]}' does not align with token boundaries:\n\n{repr(text)}\n"
+                    warnings.warn(msg)
+                else:
+                    relations.append(span)
         try:
             doc.ents = ents
         except ValueError as e:

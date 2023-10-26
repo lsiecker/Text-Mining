@@ -200,6 +200,14 @@ class Preprocessor:
 
         return training_data, relation_data
 
+    def char_to_token(self, text, start, end):
+        doc = self.nlp(text)
+        char_span = doc.char_span(start, end)
+        if char_span is None:
+            return None, None
+        else:
+            return char_span.start, char_span.end - 1
+
     def process_export_sentences(self, export_data):
         # Create dictionaries to store labels and their relations
         label_data = {}
@@ -207,7 +215,9 @@ class Preprocessor:
         relation_data = []
         training_data = []
 
-        for data in export_data:
+        entity_info = {}
+
+        for data in tqdm(export_data):
             text = data["data"]["text"]
             sentences = sent_tokenize(text)  # Split the text into sentences
 
@@ -226,6 +236,18 @@ class Preprocessor:
                         label_id = item["id"]
                         label_value = item["value"]["text"]
                         label_data[label_id] = label_value
+
+                        token_start, token_end = self.char_to_token(
+                            text, item["value"]["start"], item["value"]["end"]
+                        )
+
+                        entity_info[item["id"]] = {
+                            "start": item["value"]["start"],
+                            "end": item["value"]["end"],
+                            "token_start": token_start,
+                            "token_end": token_end,
+                            "label": item["value"]["labels"][0],
+                        }
 
                         if label_list != []:
                             # Calculate sentence-level label locations
@@ -251,13 +273,19 @@ class Preprocessor:
                         from_id = item["from_id"]
                         to_id = item["to_id"]
                         relation_labels = item["labels"]
-                        if from_id in label_data and to_id in label_data:
+                        if (
+                            from_id in label_data
+                            and to_id in label_data
+                            and relation_labels != []
+                        ):
                             relational_label_list.append(
-                                [
-                                    label_data[from_id],
-                                    label_data[to_id],
-                                    relation_labels,
-                                ]
+                                {
+                                    "head": entity_info[from_id]["token_end"],
+                                    "child": entity_info[to_id]["token_end"],
+                                    "head_span": entity_info[from_id],
+                                    "child_span": entity_info[to_id],
+                                    "label": relation_labels[0],
+                                }
                             )
 
             # Combine each sentence with its corresponding label_list
