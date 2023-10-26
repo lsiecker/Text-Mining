@@ -10,29 +10,39 @@ from spacy.tokens import DocBin
 
 
 def convert(lang: str, input_path: Path, output_path: Path):
-    nlp = spacy.blank(lang)
-    db = DocBin()
+    nlp = spacy.blank(lang)         # empty nlp object initialized     
+    db = DocBin()                   # store processed text data, often in binary format
+    print(input_path, "QQQQQQQQQQQq")
     for text, annot in srsly.read_json(input_path):
         doc = nlp.make_doc(text)
         ents = []
+        span_starts = set()
         relations = []
-        print(annot["entities"])
+
         for entity in annot["entities"]:
             for start, end, label in entity:
                 span = doc.char_span(start, end, label=label)
+
                 if span is None:
                     msg = f"Skipping entity [{start}, {end}, {label}] in the following text because the character span '{doc.text[start:end]}' does not align with token boundaries:\n\n{repr(text)}\n"
                     warnings.warn(msg)
                 else:
                     ents.append(span)
-        for rel in annot["relations"]:
-            for start, end, label in rel:
-                span = doc.char_span(start, end, label=label)
-                if span is None:
-                    msg = f"Skipping relation [{start}, {end}, {label}] in the following text because the character span '{doc.text[start:end]}' does not align with token boundaries:\n\n{repr(text)}\n"
-                    warnings.warn(msg)
-                else:
-                    relations.append(span)
+        # parse the relations
+        # rels = {}
+        # for x1 in span_starts:
+        #     for x2 in span_starts:
+        #         rels[(x1,x2)] = {}
+
+
+        # for rel in annot["relations"]:
+        #     for start, end, label in rel: 
+        #         span = doc.char_span(start, end, label=label)
+        #         if span is None:
+        #             msg = f"Skipping relation [{start}, {end}, {label}] in the following text because the character span '{doc.text[start:end]}' does not align with token boundaries:\n\n{repr(text)}\n"
+        #             warnings.warn(msg)
+        #         else:
+        #             relations.append(span)
         try:
             doc.ents = ents
         except ValueError as e:
