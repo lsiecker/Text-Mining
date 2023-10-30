@@ -365,7 +365,7 @@ class Preprocessor:
 
         return training_data, relation_data
 
-    def preprocess_json(self, training_data: list, split_ratio: float = 0.8):
+    def preprocess_json(self, training_data: list, validation_data: list):
         """
         Create training and validation datasets from a training set and store them as json files.
 
@@ -373,20 +373,16 @@ class Preprocessor:
         :param split_ratio: The ratio of the training data that is used for training
         :return: None
         """
-        # Split the data into training and development sets
-        split_index = int(len(training_data) * split_ratio)
-        train_data = training_data[:split_index]
-        dev_data = training_data[split_index:]
 
         train_save_path = os.path.join(ROOT_DIR, "spacy/assets", "train.json")
         with open(train_save_path, "w") as file:
             # Save article text to file
-            json.dump(train_data, file)
+            json.dump(training_data, file)
 
         dev_save_path = os.path.join(ROOT_DIR, "spacy/assets", "dev.json")
         with open(dev_save_path, "w") as file:
             # Save article text to file
-            json.dump(dev_data, file)
+            json.dump(validation_data, file)
 
     def preprocess_spacy(
         self, training_data: list, split_ratio: float = 0.8, warn: bool = False
