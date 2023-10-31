@@ -202,7 +202,7 @@ class Preprocessor:
 
     def char_to_token(self, text, start, end):
         doc = self.nlp(text)
-        char_span = doc.char_span(start, end)
+        char_span = doc.char_span(start, end, alignment_mode="contract")
         if char_span is None:
             return None, None
         else:
@@ -298,7 +298,7 @@ class Preprocessor:
                 [
                     text,
                     {
-                        "entities": sentence_label_lists,
+                        "entities": [].extend(sentence_label_lists),
                         "relations": relational_label_list,
                     },
                 ]
@@ -312,12 +312,12 @@ class Preprocessor:
         train_data = training_data[:split_index]
         dev_data = training_data[split_index:]
 
-        train_save_path = os.path.join(ROOT_DIR, "spacy/assets", "train.json")
+        train_save_path = os.path.join(ROOT_DIR, "spacy_folder/assets", "train.json")
         with open(train_save_path, "w") as file:
             # Save article text to file
             json.dump(train_data, file)
 
-        dev_save_path = os.path.join(ROOT_DIR, "spacy/assets", "dev.json")
+        dev_save_path = os.path.join(ROOT_DIR, "spacy_folder/assets", "dev.json")
         with open(dev_save_path, "w") as file:
             # Save article text to file
             json.dump(dev_data, file)
