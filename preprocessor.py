@@ -298,7 +298,7 @@ class Preprocessor:
                 [
                     text,
                     {
-                        "entities": [].extend(sentence_label_lists),
+                        "entities": sentence_label_lists[0],
                         "relations": relational_label_list,
                     },
                 ]
