@@ -8,7 +8,6 @@ vars:
   trf_config: "configs/rel_trf.cfg"
   train_file: "data/train.spacy"
   dev_file: "data/dev.spacy"
-  test_file: "data/test.spacy"
   trained_model: "training/model-best"
 
 # These are the directories that the project needs. The project CLI will make
@@ -39,13 +38,12 @@ commands:
   - name: "data"
     help: "Parse the gold-standard annotations from the Prodigy annotations."
     script:
-      - "python ./scripts/parse_data.py ${vars.annotations} ${vars.train_file} ${vars.dev_file} ${vars.test_file}"
+      - "python ./scripts/parse_data.py ${vars.annotations} ${vars.train_file} ${vars.dev_file}"
     deps:
       - ${vars.annotations}
     outputs:
       - ${vars.train_file}
       - ${vars.dev_file}
-      - ${vars.test_file}
 
   - name: "train_cpu"
     help: "Train the REL model on the CPU and evaluate on the dev corpus."
@@ -70,10 +68,10 @@ commands:
   - name: "evaluate"
     help: "Apply the best model to new, unseen text, and measure accuracy at different thresholds."
     script:
-      - "python ./scripts/evaluate.py ${vars.trained_model} ${vars.test_file} False"
+      - "python ./scripts/evaluate.py ${vars.trained_model} ${vars.dev_file} False"
     deps:
       - ${vars.trained_model}
-      - ${vars.test_file}
+      - ${vars.dev_file}
 
 
   - name: "clean"

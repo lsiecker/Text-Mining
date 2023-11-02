@@ -11,15 +11,20 @@ msg = Printer()
 
 SYMM_LABELS = ["Binds"]
 MAP_LABELS = {
-    "Pos-Reg": "Regulates",
-    "Neg-Reg": "Regulates",
-    "Reg": "Regulates",
-    "No-rel": "Regulates",
-    "Binds": "Binds",
+    "org:created_by": "created_by",
+    "org:located_in": "located_in",
+    "org:happened_on": "happened_on",
+    "org:has_occupation": "has_occupation",
+    "org:is_condition": "is_condition",
+    "org:enlisted_in": "enlisted_in",
+    "org:is_type": "is_type",
+    "org:has_component": "has_component",
+    "org:is_similar_to": "is_similar_to",
+    "org:unrelated": "unrelated",
 }
 
 
-def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
+def main(json_loc: Path, train_file: Path, dev_file: Path):
     """Creating the corpus from the Prodigy annotations."""
     Doc.set_extension("rel", default={})
     vocab = Vocab()
@@ -51,9 +56,14 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
                             span["start"], span["end"], label=span["label"]
                         )
                         span_end_to_start[span["token_end"]] = span["token_start"]
-                        entities.append(entity)
+                        if entity is not None and entity not in entities:
+                            entities.append(entity)
                         span_starts.add(span["token_start"])
-                    doc.ents = entities
+                        try:
+                            doc.ents = entities
+                        except ValueError as e:
+                            entities.pop()
+                            print(e)
 
                     # Parse the relations
                     rels = {}
@@ -89,26 +99,25 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
                     if pos > 0:
                         # use the original PMID/PMCID to decide on train/dev/test split
                         article_id = example["meta"]["source"]
-                        article_id = article_id.replace("BioNLP 2011 Genia Shared Task, ", "")
+                        article_id = article_id.replace(
+                            "BioNLP 2011 Genia Shared Task, ", ""
+                        )
                         article_id = article_id.replace(".txt", "")
-                        article_id = article_id.split("-")[1]
-                        if article_id.endswith("4"):
+                        article_id = article_id.split("_")[-1]
+                        if article_id.endswith("_truth"):
                             ids["dev"].add(article_id)
                             docs["dev"].append(doc)
                             count_pos["dev"] += pos
                             count_all["dev"] += pos + neg
-                        elif article_id.endswith("3"):
-                            ids["test"].add(article_id)
-                            docs["test"].append(doc)
-                            count_pos["test"] += pos
-                            count_all["test"] += pos + neg
                         else:
                             ids["train"].add(article_id)
                             docs["train"].append(doc)
                             count_pos["train"] += pos
                             count_all["train"] += pos + neg
                 except KeyError as e:
-                    msg.fail(f"Skipping doc because of key error: {e} in {example['meta']['source']}")
+                    msg.fail(
+                        f"Skipping doc because of key error: {e} in {example['meta']['source']}"
+                    )
 
     docbin = DocBin(docs=docs["train"], store_user_data=True)
     docbin.to_disk(train_file)
@@ -122,13 +131,6 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, test_file: Path):
     msg.info(
         f"{len(docs['dev'])} dev sentences from {len(ids['dev'])} articles, "
         f"{count_pos['dev']}/{count_all['dev']} pos instances."
-    )
-
-    docbin = DocBin(docs=docs["test"], store_user_data=True)
-    docbin.to_disk(test_file)
-    msg.info(
-        f"{len(docs['test'])} test sentences from {len(ids['test'])} articles, "
-        f"{count_pos['test']}/{count_all['test']} pos instances."
     )
 
 

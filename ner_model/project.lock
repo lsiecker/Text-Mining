@@ -15,14 +15,14 @@ convert:
     - python scripts/convert.py en assets/dev.json corpus/dev.spacy
   deps:
     - path: assets/train.json
-      md5: 1c8ddd953bb13e8322e62dd4da5a65a4
+      md5: 39bdec6c6beafd91e28fac903f328e46
     - path: assets/dev.json
       md5: a2add67927ed37316071d5e21eeda8a0
     - path: scripts/convert.py
       md5: e4b76279a5f6aa98035dc9e8be0c8ace
   outs:
     - path: corpus/train.spacy
-      md5: 4be8c3779e8d0cee0e26aa6b9da9f695
+      md5: 65d26dbe35fb03f508e464dbb1183aba
     - path: corpus/dev.spacy
       md5: b44e27103017d7599711546a2ae38be5
 train:
@@ -34,12 +34,12 @@ train:
     - path: configs/config.cfg
       md5: 80860bcdfa121588b292c8a3b866506d
     - path: corpus/train.spacy
-      md5: 4be8c3779e8d0cee0e26aa6b9da9f695
+      md5: 65d26dbe35fb03f508e464dbb1183aba
     - path: corpus/dev.spacy
       md5: b44e27103017d7599711546a2ae38be5
   outs:
     - path: training/model-best
-      md5: c1ae10d8a96d74efcafb9a106f29b212
+      md5: c7f8885b83766ada426f17811b03e740
 evaluate:
   cmd: python -m weasel run evaluate
   script:
@@ -48,7 +48,7 @@ evaluate:
     - path: corpus/dev.spacy
       md5: b44e27103017d7599711546a2ae38be5
     - path: training/model-best
-      md5: c1ae10d8a96d74efcafb9a106f29b212
+      md5: c7f8885b83766ada426f17811b03e740
   outs:
     - path: training/metrics.json
-      md5: e61a2d50dad2ebfa250ec474c8b46377
+      md5: 421814fd25c3b30eddabcaf965b6158f

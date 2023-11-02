@@ -263,7 +263,15 @@ class Preprocessor:
 
         return list(self.shared_page_dictionary)
 
-    def process_export_sentences(self, export_data: list):
+    def char_to_token(self, text, start, end):
+        doc = self.nlp(text)
+        char_span = doc.char_span(start, end, alignment_mode="contract")
+        if char_span is None:
+            return None, None
+        else:
+            return char_span.start, char_span.end - 1
+
+    def process_export_sentences(self, export_data: list, ground_truth: bool = False):
         """
         Processes a Label studio export dataset and converts it to a training dataset and relational dataset.
 
@@ -272,8 +280,11 @@ class Preprocessor:
         """
         # Create dictionaries to store labels and their relations
         label_data = {}
-        relation_data = {}
+        relational_label_list = []
+        relation_data = []
         training_data = []
+
+        entity_info = {}
 
         for data in export_data:
             text = data["data"]["text"]
@@ -281,6 +292,8 @@ class Preprocessor:
 
             # Initialize a list to store label_list for each sentence
             sentence_label_lists = [[] for _ in sentences]
+            total_label_list = []
+            spans = []
 
             for user in data["annotations"]:
                 for item in user["result"]:
@@ -293,6 +306,36 @@ class Preprocessor:
                         label_id = item["id"]
                         label_value = item["value"]["text"]
                         label_data[label_id] = label_value
+
+                        token_start, token_end = self.char_to_token(
+                            text, item["value"]["start"], item["value"]["end"]
+                        )
+
+                        if (
+                            label_value is not None
+                            or item["value"]["labels"] != []
+                            or item["value"]["start"] is not None
+                            or item["value"]["end"] is not None
+                        ):
+                            spans.append(
+                                {
+                                    "text": label_value,
+                                    "start": item["value"]["start"],
+                                    "end": item["value"]["end"],
+                                    "token_start": token_start,
+                                    "token_end": token_end,
+                                    "type": "span",
+                                    "label": item["value"]["labels"][0],
+                                }
+                            )
+
+                        entity_info[item["id"]] = {
+                            "start": item["value"]["start"],
+                            "end": item["value"]["end"],
+                            "token_start": token_start,
+                            "token_end": token_end,
+                            "label": item["value"]["labels"][0],
+                        }
 
                         if label_list != []:
                             # Calculate sentence-level label locations
@@ -353,17 +396,74 @@ class Preprocessor:
                         from_id = item["from_id"]
                         to_id = item["to_id"]
                         relation_labels = item["labels"]
-                        if from_id in label_data and to_id in label_data:
-                            relation_data[
-                                (label_data[from_id], label_data[to_id])
-                            ] = relation_labels
+                        if (
+                            from_id in label_data
+                            and to_id in label_data
+                            and relation_labels != []
+                        ):
+                            relational_label_list.append(
+                                {
+                                    "head": entity_info[from_id]["token_end"],
+                                    "child": entity_info[to_id]["token_end"],
+                                    "head_span": entity_info[from_id],
+                                    "child_span": entity_info[to_id],
+                                    "label": relation_labels[0],
+                                }
+                            )
 
             # Combine each sentence with its corresponding label_list
             for sent, sent_label_list in zip(sentences, sentence_label_lists):
                 if sent_label_list != []:
                     training_data.append([sent, {"entities": sent_label_list}])
 
+            # Combine text with its corresponding relation labels
+
+            tokens = [
+                {
+                    "text": token.text,
+                    "start": token.idx,
+                    "end": token.idx + len(token.text),
+                    "ws": True if token.whitespace_ else False,
+                    "id": i,
+                }
+                for i, token in enumerate(self.nlp(text))
+            ]
+
+            rel_data = {
+                "text": text,
+                "spans": spans,
+                "meta": {"source": data["data"]["title"]}
+                if not ground_truth
+                else {"source": data["data"]["title"] + "_truth"},
+                "tokens": tokens,
+                "relations": relational_label_list,
+                "answer": "accept",
+            }
+
+            save_path = os.path.join(ROOT_DIR, "rel_model/assets", "annotations.jsonl")
+            with open(save_path, "a") as file:
+                # Save article text to file
+                json.dump(rel_data, file)
+                file.write("\n")
+
+            relation_data.append(rel_data)
+
         return training_data, relation_data
+
+    def preprocess_json_rel(self, relational_annotations: list):
+        """
+        Create training and validation datasets from a training set and store them as json files.
+
+        :param training_data: The training data
+        :param split_ratio: The ratio of the training data that is used for training
+        :return: None
+        """
+
+        save_path = os.path.join(ROOT_DIR, "rel_model/assets", "annotations.json")
+        with open(save_path, "w") as file:
+            # Save article text to file
+            for annotation in relational_annotations:
+                json.dump(annotation, file)
 
     def preprocess_json(self, training_data: list, validation_data: list):
         """
