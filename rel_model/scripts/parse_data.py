@@ -1,10 +1,12 @@
 import json
+from tqdm import tqdm
 
 import typer
 from pathlib import Path
 
 from spacy.tokens import Span, DocBin, Doc
 from spacy.vocab import Vocab
+from spacy.util import filter_spans
 from wasabi import Printer
 
 msg = Printer()
@@ -51,19 +53,26 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                     spans = example["spans"]
                     entities = []
                     span_end_to_start = {}
-                    for span in spans:
+                    for i, span in enumerate(spans):
                         entity = doc.char_span(
-                            span["start"], span["end"], label=span["label"]
+                            span["start"],
+                            span["end"],
+                            label=span["label"],
+                            alignment_mode="contract",
+                            span_id=i,
                         )
                         span_end_to_start[span["token_end"]] = span["token_start"]
                         if entity is not None and entity not in entities:
                             entities.append(entity)
                         span_starts.add(span["token_start"])
-                        try:
-                            doc.ents = entities
-                        except ValueError as e:
-                            entities.pop()
-                            print(e)
+
+                    if (
+                        example["meta"]["source"] == "Engelsberg Ironworks"
+                        or example["meta"]["source"] == "Emas National Park"
+                    ):
+                        print(entities, example["text"])
+
+                    doc.ents = filter_spans(entities)
 
                     # Parse the relations
                     rels = {}
