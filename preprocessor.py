@@ -32,10 +32,10 @@ class Preprocessor:
     def fix_unicode(self, data: list):
         """
         Cleans UNIX characters from a given article text and stores it in a new value stored under the 'text' key
-        
-        :param data: List of dictionaries where each dictionary represents 
+
+        :param data: List of dictionaries where each dictionary represents
             a Wikipedia article and its metadata
-        :return: A list of dictionaries where again 
+        :return: A list of dictionaries where again
             each dictionary represents a Wikipedia article, but now with
             an additional key-value pair with the cleaned article text.
         """
@@ -51,13 +51,13 @@ class Preprocessor:
     def writeFile(self, data: list, name: str, basedir: str = ROOT_DIR):
         """
         Saves a dataset to a JSON file for a given name.
-        
+
         :param data: List of dictionaries where each dictionary represents
             a Wikipedia article and its metadata
         :param name: Name of the stored file
         :param basedir: Path of the base directory
         :return: None
-        
+
         """
         file_path = os.path.join(basedir, "data\\", name)
         with open(file_path, "w") as file:
@@ -66,7 +66,7 @@ class Preprocessor:
     def loadFile(self, name: str, basedir: str = ROOT_DIR):
         """
         Loads a dataset from a JSON file for a given name.
-        
+
         :param name: Name of the stored file
         :param basedir: Path of the base directory
         :return: List of dictionaries where each dictionary represents
@@ -80,7 +80,7 @@ class Preprocessor:
     def save_file(self, data: list, folder: str):
         """
         Saves a dataset to multiple JSON files in a given folder.
-        
+
         :param data: List of dictionaries where each dictionary represents
             a Wikipedia article and its metadata
         :param folder: Name of the folder where the files are stored
@@ -107,11 +107,11 @@ class Preprocessor:
     def clean_alphanumeric(self, data: list, pattern=r"\W+"):
         """
         Cleans non-alphanumeric characters from a given article text and stores it in a new value stored under the 'text' key
-        
+
         :param data: List of dictionaries where each dictionary represents
             a Wikipedia article and its metadata
         :param pattern: Regular expression pattern to split the text
-        :return: A list of dictionaries where again 
+        :return: A list of dictionaries where again
             each dictionary represents a Wikipedia article, but now with
             an additional key-value pair with the cleaned article text.
         """
@@ -127,11 +127,11 @@ class Preprocessor:
             article["text"] = " ".join(char_words)
             cleaned_articles.append(article)
         return cleaned_articles
-    
+
     def clean_html(self, dataset: pd.DataFrame, column: str):
         """
         Cleans html tags from a given column in a dataset.
-        
+
         :param dataset: The dataset that needs to be cleaned
         :param column: The column that needs to be cleaned
         :return: The cleaned dataset
@@ -146,17 +146,22 @@ class Preprocessor:
     def ner_spacy(self, text: str):
         """
         Process a text with the spacy nlp model.
-        
+
         :param text: The text to be processed
         :return: A document object
         """
         doc = self.nlp(text)
         return doc
 
-    def process_file_nlp(self, file_path: str, landmark_embeddings: list, similarity_threshold: float = 0.97):
+    def process_file_nlp(
+        self,
+        file_path: str,
+        landmark_embeddings: list,
+        similarity_threshold: float = 0.97,
+    ):
         """
         Process a file with the spacy nlp model. And check if the titles of the articles are similar to the landmark embeddings.
-        
+
         :param file_path: The path to the file that needs to be processed
         :param landmark_embeddings: A list of the landmark embeddings
         :return: A list of the significantly similar pages
@@ -165,7 +170,6 @@ class Preprocessor:
         with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
             for info_dict in tqdm(data, total=len(data)):
-
                 # Handle every seperate wikipedia page
                 # Check if the title and the text are not empty strings
                 if (
@@ -186,16 +190,18 @@ class Preprocessor:
                             break
         return list(shared_page_dictionary)
 
-    def process_file_regex(self, file_path: str, title_based: bool, title: str, landmarks: list):
+    def process_file_regex(
+        self, file_path: str, title_based: bool, title: str, landmarks: list
+    ):
         """
         Process a file and either check if the titles of the articles occur in the landmark list
             or check if the given title occurs in the article.
-        
+
         :param file_path: The path to the file that needs to be processed
         :param title_based: A boolean that indicates if the title_based method is used
         :param title: The title of the landmark
         :param landmarks: A list of the landmark names
-        :return: A list of the articles that were seen as relevant      
+        :return: A list of the articles that were seen as relevant
         """
         # Load the JSON data
         with open(file_path, "r", encoding="utf-8") as file:
@@ -217,10 +223,15 @@ class Preprocessor:
                         ):
                             self.shared_page_dictionary.append(info_dict)
                             break
-                    
 
     def process_folders(
-        self, folders: list, debug: bool, title: str, title_based: bool, landmarks: list, datadir: str = DATA_PATH
+        self,
+        folders: list,
+        debug: bool,
+        title: str,
+        title_based: bool,
+        landmarks: list,
+        datadir: str = DATA_PATH,
     ):
         """
         Process all files in a folder in a specific directory. Threads are used to speed up the process.
@@ -255,7 +266,7 @@ class Preprocessor:
     def process_export_sentences(self, export_data: list):
         """
         Processes a Label studio export dataset and converts it to a training dataset and relational dataset.
-        
+
         :param export_data: The Label studio export dataset with all annotations
         :return: A list of the training data and a dictionary of the relations
         """
@@ -293,13 +304,49 @@ class Preprocessor:
                                     sentence_start <= label_list[0] < sentence_end
                                     and sentence_start < label_list[1] <= sentence_end
                                 ):
-                                    sentence_label_list = [
-                                        [
-                                            label_list[0] - sentence_start,
-                                            label_list[1] - sentence_start,
-                                            label_list[2],
+                                    # Check if the span is already in the sentence_label_list, if so take the longest span
+                                    if sentence_label_lists[i] != []:
+                                        for j, label in enumerate(
+                                            sentence_label_lists[i]
+                                        ):
+                                            if (
+                                                label[0] >= label_list[0]
+                                                and label[1] <= label_list[1]
+                                            ):
+                                                sentence_label_lists[i].pop(j)
+                                                sentence_label_list = [
+                                                    [
+                                                        label_list[0] - sentence_start,
+                                                        label_list[1] - sentence_start,
+                                                        label_list[2],
+                                                    ]
+                                                ]
+                                            elif (
+                                                label[0] > label_list[0]
+                                                and label[1] <= label_list[1]
+                                            ) or (
+                                                label[0] >= label_list[0]
+                                                and label[1] < label_list[1]
+                                            ):
+                                                sentence_label_lists[i].pop(j)
+                                                sentence_label_list = [
+                                                    [
+                                                        label_list[0] - sentence_start,
+                                                        label_list[1] - sentence_start,
+                                                        label_list[2],
+                                                    ]
+                                                ]
+                                            else:
+                                                break
+                                    else:
+                                        sentence_label_list = [
+                                            [
+                                                label_list[0] - sentence_start,
+                                                label_list[1] - sentence_start,
+                                                label_list[2],
+                                            ]
                                         ]
-                                    ]
+
                                 sentence_label_lists[i].extend(sentence_label_list)
 
                     elif item["type"] == "relation":
@@ -318,33 +365,31 @@ class Preprocessor:
 
         return training_data, relation_data
 
-    def preprocess_json(self, training_data: list, split_ratio: float = 0.8):
+    def preprocess_json(self, training_data: list, validation_data: list):
         """
         Create training and validation datasets from a training set and store them as json files.
-        
+
         :param training_data: The training data
         :param split_ratio: The ratio of the training data that is used for training
         :return: None
         """
-        # Split the data into training and development sets
-        split_index = int(len(training_data) * split_ratio)
-        train_data = training_data[:split_index]
-        dev_data = training_data[split_index:]
 
         train_save_path = os.path.join(ROOT_DIR, "spacy/assets", "train.json")
         with open(train_save_path, "w") as file:
             # Save article text to file
-            json.dump(train_data, file)
+            json.dump(training_data, file)
 
         dev_save_path = os.path.join(ROOT_DIR, "spacy/assets", "dev.json")
         with open(dev_save_path, "w") as file:
             # Save article text to file
-            json.dump(dev_data, file)
+            json.dump(validation_data, file)
 
-    def preprocess_spacy(self, training_data: list, split_ratio: float = 0.8, warn: bool = False):
+    def preprocess_spacy(
+        self, training_data: list, split_ratio: float = 0.8, warn: bool = False
+    ):
         """
         Save the training and validation datasets as spacy files for model building.
-        
+
         :param training_data: The training data
         :param split_ratio: The ratio of the training data that is used for training
         :param warn: A boolean that indicates if warnings should be shown

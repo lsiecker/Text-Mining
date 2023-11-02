@@ -145,8 +145,16 @@
       "TIME",
       "WORK_OF_ART",
       "animal",
+      "component",
+      "condition",
+      "date",
+      "landmark_name",
       "location",
-      "person_name"
+      "number",
+      "occupation",
+      "people",
+      "person_name",
+      "type"
     ]
   },
   "pipeline":[
@@ -178,27 +186,55 @@
     "sents_r":0.0,
     "sents_f":0.0,
     "lemma_acc":0.0,
-    "ents_f":1.0,
-    "ents_p":1.0,
-    "ents_r":1.0,
+    "ents_f":0.3937007874,
+    "ents_p":0.5,
+    "ents_r":0.3246753247,
     "ents_per_type":{
+      "landmark_name":{
+        "p":0.6,
+        "r":0.5142857143,
+        "f":0.5538461538
+      },
+      "component":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
+      },
+      "date":{
+        "p":0.8,
+        "r":0.4,
+        "f":0.5333333333
+      },
+      "number":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
+      },
       "location":{
-        "p":1.0,
-        "r":1.0,
-        "f":1.0
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
       },
-      "person_name":{
-        "p":1.0,
-        "r":1.0,
-        "f":1.0
+      "type":{
+        "p":0.375,
+        "r":0.3,
+        "f":0.3333333333
       },
-      "animal":{
-        "p":1.0,
-        "r":1.0,
-        "f":1.0
+      "people":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
+      },
+      "condition":{
+        "p":0.0,
+        "r":0.0,
+        "f":0.0
       }
     },
-    "speed":4667.2111721723,
-    "ner_loss":1.2854602852
+    "speed":9422.2307555278,
+    "tok2vec_loss":0.0,
+    "tagger_loss":0.0,
+    "parser_loss":0.0,
+    "ner_loss":945.4744487566
   }
 }
