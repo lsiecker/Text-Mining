@@ -374,12 +374,12 @@ class Preprocessor:
         :return: None
         """
 
-        train_save_path = os.path.join(ROOT_DIR, "spacy/assets", "train.json")
+        train_save_path = os.path.join(ROOT_DIR, "ner_model/assets", "train.json")
         with open(train_save_path, "w") as file:
             # Save article text to file
             json.dump(training_data, file)
 
-        dev_save_path = os.path.join(ROOT_DIR, "spacy/assets", "dev.json")
+        dev_save_path = os.path.join(ROOT_DIR, "ner_model/assets", "dev.json")
         with open(dev_save_path, "w") as file:
             # Save article text to file
             json.dump(validation_data, file)
@@ -423,7 +423,7 @@ class Preprocessor:
                 )
             train_db.add(doc)
 
-        train_save_path = os.path.join(ROOT_DIR, "spacy/corpus", "train.spacy")
+        train_save_path = os.path.join(ROOT_DIR, "ner_model/corpus", "train.spacy")
         train_db.to_disk(train_save_path)
 
         # Create dev.spacy
@@ -447,5 +447,5 @@ class Preprocessor:
                 )
             dev_db.add(doc)
 
-        dev_save_path = os.path.join(ROOT_DIR, "spacy/corpus", "dev.spacy")
+        dev_save_path = os.path.join(ROOT_DIR, "ner_model/corpus", "dev.spacy")
         dev_db.to_disk(dev_save_path)
