@@ -43,50 +43,62 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
             if example["answer"] == "accept":
                 neg = 0
                 pos = 0
-                try:
-                    # Parse the tokens
-                    words = [t["text"] for t in example["tokens"]]
-                    spaces = [t["ws"] for t in example["tokens"]]
-                    doc = Doc(vocab, words=words, spaces=spaces)
+                #try:
+                # Parse the tokens
+                words = [t["text"] for t in example["tokens"]]
+                spaces = [t["ws"] for t in example["tokens"]]
+                doc = Doc(vocab, words=words, spaces=spaces)
 
-                    # Parse the GGP entities
-                    spans = example["spans"]
-                    entities = []
-                    span_end_to_start = {}
-                    for i, span in enumerate(spans):
-                        entity = doc.char_span(
-                            span["start"],
-                            span["end"],
-                            label=span["label"],
-                            alignment_mode="contract",
-                            span_id=i,
-                        )
-                        span_end_to_start[span["token_end"]] = span["token_start"]
-                        if entity is not None and entity not in entities:
-                            entities.append(entity)
-                        span_starts.add(span["token_start"])
+                # Parse the GGP entities
+                spans = example["spans"]
+                entities = []
+                #span_end_to_start = {}
+                for i, span in enumerate(spans):
+                    if span["token_start"] == None or span["token_end"] == None:
+                        continue
+                    entity = doc.char_span(
+                        span["start"],
+                        span["end"],
+                        label=span["label"],
+                        alignment_mode="contract",
+                        span_id=i,
+                    )
+                    #span_end_to_start[span["token_end"]] = span["token_start"]
 
-                    if (
-                        example["meta"]["source"] == "Engelsberg Ironworks"
-                        or example["meta"]["source"] == "Emas National Park"
-                    ):
-                        print(entities, example["text"])
+                    if entity is not None and entity not in entities:
+                        entities.append(entity)
+                    span_starts.add(span["token_start"])
+                # print(span_starts)
 
-                    doc.ents = filter_spans(entities)
+                # if (
+                #     example["meta"]["source"] == "Engelsberg Ironworks"
+                #     or example["meta"]["source"] == "Emas National Park"
+                # ):
+                #     print(entities, example["text"])
 
-                    # Parse the relations
-                    rels = {}
-                    for x1 in span_starts:
-                        for x2 in span_starts:
-                            rels[(x1, x2)] = {}
-                    relations = example["relations"]
-                    for relation in relations:
-                        # the 'head' and 'child' annotations refer to the end token in the span
-                        # but we want the first token
-                        start = span_end_to_start[relation["head"]]
-                        end = span_end_to_start[relation["child"]]
-                        label = relation["label"]
-                        label = MAP_LABELS[label]
+                doc.ents = filter_spans(entities)
+
+                # Parse the relations
+                rels = {}
+                skipped = 0
+                found = 0
+                for x1 in span_starts:
+                    for x2 in span_starts:
+                        rels[(x1, x2)] = {}
+                relations = example["relations"]
+                true_relation = len(relations)
+                
+                for relation in relations:
+                    # the 'head' and 'child' annotations refer to the end token in the span
+                    # but we want the first token
+                    start = relation["head_span"]["token_start"] #span_end_to_start[relation["head"]]
+                    end = relation["child_span"]["token_start"] #span_end_to_start[relation["child"]]
+                    label = relation["label"]
+                    label = MAP_LABELS[label]  # remove org:
+                    # print("label: ", label)
+                    # print("start: ", start, " end: ", end)
+                    if (start, end) in rels.keys():
+                        # print("start end also ik rels dictionary")
                         if label not in rels[(start, end)]:
                             rels[(start, end)][label] = 1.0
                             pos += 1
@@ -94,39 +106,43 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                             if label not in rels[(end, start)]:
                                 rels[(end, start)][label] = 1.0
                                 pos += 1
+                        found += 1
+                    else:
+                        skipped += 1
+                print("for ", example['meta']['source'],", skipped: ", skipped, "found: ", found, " from true relations: " , true_relation)
 
-                    # The annotation is complete, so fill in zero's where the data is missing
-                    for x1 in span_starts:
-                        for x2 in span_starts:
-                            for label in MAP_LABELS.values():
-                                if label not in rels[(x1, x2)]:
-                                    neg += 1
-                                    rels[(x1, x2)][label] = 0.0
-                    doc._.rel = rels
+                # The annotation is complete, so fill in zero's where the data is missing
+                for x1 in span_starts:
+                    for x2 in span_starts:
+                        for label in MAP_LABELS.values():
+                            if label not in rels[(x1, x2)]:
+                                neg += 1
+                                rels[(x1, x2)][label] = 0.0
+                doc._.rel = rels
 
-                    # only keeping documents with at least 1 positive case
-                    if pos > 0:
-                        # use the original PMID/PMCID to decide on train/dev/test split
-                        article_id = example["meta"]["source"]
-                        article_id = article_id.replace(
-                            "BioNLP 2011 Genia Shared Task, ", ""
-                        )
-                        article_id = article_id.replace(".txt", "")
-                        article_id = article_id.split("_")[-1]
-                        if article_id.endswith("_truth"):
-                            ids["dev"].add(article_id)
-                            docs["dev"].append(doc)
-                            count_pos["dev"] += pos
-                            count_all["dev"] += pos + neg
-                        else:
-                            ids["train"].add(article_id)
-                            docs["train"].append(doc)
-                            count_pos["train"] += pos
-                            count_all["train"] += pos + neg
-                except KeyError as e:
-                    msg.fail(
-                        f"Skipping doc because of key error: {e} in {example['meta']['source']}"
+                # only keeping documents with at least 1 positive case
+                if pos > 0:
+                    # use the original PMID/PMCID to decide on train/dev/test split
+                    article_id = example["meta"]["source"]
+                    article_id = article_id.replace(
+                        "BioNLP 2011 Genia Shared Task, ", ""
                     )
+                    article_id = article_id.replace(".txt", "")
+                    article_id = article_id.split("_")[-1]
+                    if article_id.endswith("_truth"):
+                        ids["dev"].add(article_id)
+                        docs["dev"].append(doc)
+                        count_pos["dev"] += pos
+                        count_all["dev"] += pos + neg
+                    else:
+                        ids["train"].add(article_id)
+                        docs["train"].append(doc)
+                        count_pos["train"] += pos
+                        count_all["train"] += pos + neg
+                # except KeyError as e:
+                #     msg.fail(
+                #         f"Skipping doc because of key error: {e} in {example['meta']['source']}"
+                #     )
 
     docbin = DocBin(docs=docs["train"], store_user_data=True)
     docbin.to_disk(train_file)
