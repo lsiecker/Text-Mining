@@ -7,7 +7,7 @@ data:
       md5: 7e7b983c978a84ca7e129bb4e35c4094
   outs:
     - path: data/train.spacy
-      md5: 795bb52f39bdb6c608a6e0bca46a2ca0
+      md5: e39af56be11d5a0a3ab9e2b5e2f50989
     - path: data/dev.spacy
       md5: e77a6e27e2dc30accb80b5a3d4840b34
 train_cpu:
