@@ -7,9 +7,9 @@ data:
       md5: 7e7b983c978a84ca7e129bb4e35c4094
   outs:
     - path: data/train.spacy
-      md5: e39af56be11d5a0a3ab9e2b5e2f50989
+      md5: 1cf887af56899b9c45bd2f165cd641af
     - path: data/dev.spacy
-      md5: e77a6e27e2dc30accb80b5a3d4840b34
+      md5: 167252eba3d4ca5ef42ce09f659e4909
 train_cpu:
   cmd: python -m weasel run train_cpu
   script:
@@ -17,12 +17,12 @@ train_cpu:
       data/train.spacy --paths.dev data/dev.spacy -c ./scripts/custom_functions.py
   deps:
     - path: data/train.spacy
-      md5: 28e4ed9e9c35ca61951c5a9eea999595
+      md5: 1cf887af56899b9c45bd2f165cd641af
     - path: data/dev.spacy
-      md5: e77a6e27e2dc30accb80b5a3d4840b34
+      md5: 167252eba3d4ca5ef42ce09f659e4909
   outs:
     - path: training/model-best
-      md5: d069343fa4acdd032681b25503b5a7ed
+      md5: a88474271df687f3a6b39807ae3a06e0
 evaluate:
   cmd: python -m weasel run evaluate
   script:

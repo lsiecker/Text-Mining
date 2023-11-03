@@ -129,7 +129,7 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                     )
                     article_id = article_id.replace(".txt", "")
                     article_id = article_id.split("_")[-1]
-                    if article_id.endswith("_truth"):
+                    if article_id.endswith("truth"):
                         ids["dev"].add(article_id)
                         docs["dev"].append(doc)
                         count_pos["dev"] += pos
@@ -139,10 +139,7 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                         docs["train"].append(doc)
                         count_pos["train"] += pos
                         count_all["train"] += pos + neg
-                # except KeyError as e:
-                #     msg.fail(
-                #         f"Skipping doc because of key error: {e} in {example['meta']['source']}"
-                #     )
+
 
     docbin = DocBin(docs=docs["train"], store_user_data=True)
     docbin.to_disk(train_file)
