@@ -54,6 +54,8 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                     entities = []
                     span_end_to_start = {}
                     for i, span in enumerate(spans):
+                        if span["token_start"] == None or span["token_end"] == None:
+                            continue
                         entity = doc.char_span(
                             span["start"],
                             span["end"],
