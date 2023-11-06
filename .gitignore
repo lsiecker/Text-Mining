@@ -3,3 +3,4 @@ data/AB/*
 Pipfile
 Pipfile.lock
 __pycache__/*
+.vscode
