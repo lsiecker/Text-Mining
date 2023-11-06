@@ -12,7 +12,7 @@ from wasabi import Printer
 msg = Printer()
 
 SYMM_LABELS = ["Binds"]
-MAP_LABELS = {
+MAP_LABELS_1 = {
     "org:created_by": "created_by",
     "org:located_in": "located_in",
     "org:happened_on": "happened_on",
@@ -25,8 +25,14 @@ MAP_LABELS = {
     "org:unrelated": "unrelated",
 }
 
+MAP_LABELS_2 = {}
 
-def main(json_loc: Path, train_file: Path, dev_file: Path):
+
+def main(json_loc: Path, train_file: Path, dev_file: Path, component: int = 1):
+    if component == 1:
+        MAP_LABELS = MAP_LABELS_1
+    else:
+        MAP_LABELS = MAP_LABELS_2
     """Creating the corpus from the Prodigy annotations."""
     Doc.set_extension("rel", default={})
     vocab = Vocab()
@@ -43,7 +49,7 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
             if example["answer"] == "accept":
                 neg = 0
                 pos = 0
-                #try:
+                # try:
                 # Parse the tokens
                 words = [t["text"] for t in example["tokens"]]
                 spaces = [t["ws"] for t in example["tokens"]]
@@ -52,7 +58,7 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                 # Parse the GGP entities
                 spans = example["spans"]
                 entities = []
-                #span_end_to_start = {}
+                # span_end_to_start = {}
                 for i, span in enumerate(spans):
                     if span["token_start"] == None or span["token_end"] == None:
                         continue
@@ -63,7 +69,7 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                         alignment_mode="contract",
                         span_id=i,
                     )
-                    #span_end_to_start[span["token_end"]] = span["token_start"]
+                    # span_end_to_start[span["token_end"]] = span["token_start"]
 
                     if entity is not None and entity not in entities:
                         entities.append(entity)
@@ -87,12 +93,16 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                         rels[(x1, x2)] = {}
                 relations = example["relations"]
                 true_relation = len(relations)
-                
+
                 for relation in relations:
                     # the 'head' and 'child' annotations refer to the end token in the span
                     # but we want the first token
-                    start = relation["head_span"]["token_start"] #span_end_to_start[relation["head"]]
-                    end = relation["child_span"]["token_start"] #span_end_to_start[relation["child"]]
+                    start = relation["head_span"][
+                        "token_start"
+                    ]  # span_end_to_start[relation["head"]]
+                    end = relation["child_span"][
+                        "token_start"
+                    ]  # span_end_to_start[relation["child"]]
                     label = relation["label"]
                     label = MAP_LABELS[label]  # remove org:
                     # print("label: ", label)
@@ -109,7 +119,16 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                         found += 1
                     else:
                         skipped += 1
-                print("for ", example['meta']['source'],", skipped: ", skipped, "found: ", found, " from true relations: " , true_relation)
+                print(
+                    "for ",
+                    example["meta"]["source"],
+                    ", skipped: ",
+                    skipped,
+                    "found: ",
+                    found,
+                    " from true relations: ",
+                    true_relation,
+                )
 
                 # The annotation is complete, so fill in zero's where the data is missing
                 for x1 in span_starts:
@@ -139,7 +158,6 @@ def main(json_loc: Path, train_file: Path, dev_file: Path):
                         docs["train"].append(doc)
                         count_pos["train"] += pos
                         count_all["train"] += pos + neg
-
 
     docbin = DocBin(docs=docs["train"], store_user_data=True)
     docbin.to_disk(train_file)

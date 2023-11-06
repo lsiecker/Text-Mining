@@ -3,12 +3,16 @@ description: "This example project shows how to implement a spaCy component with
 
 # Variables can be referenced across the project.yml using ${vars.var_name}
 vars:
-  annotations: "assets/annotations.jsonl"
+  annotations: "assets/annotations_1.jsonl"
   tok2vec_config: "configs/rel_tok2vec.cfg"
   trf_config: "configs/rel_trf.cfg"
-  train_file: "data/train.spacy"
-  dev_file: "data/dev.spacy"
-  trained_model: "training/model-best"
+  train_file: "data/train_1.spacy"
+  dev_file: "data/dev_1.spacy"
+  trained_model: "training_1/model-best"
+  annotations2: "assets/annotations_2.jsonl"
+  train_file2: "data/train_2.spacy"
+  dev_file2: "data/dev_2.spacy"
+  trained_model2: "training_2/model-best"
 
 # These are the directories that the project needs. The project CLI will make
 # sure that they always exist.
@@ -19,16 +23,25 @@ directories: ["scripts", "configs", "assets", "data", "training"]
 assets:
     - dest: ${vars.annotations}
       description: "Gold-standard REL annotations created with Prodigy"
+    - dest: ${vars.annotations2}
 
 workflows:
-  all:
+  all_1:
     - data
     - train_cpu
     - evaluate
-  all_gpu:
+  all_1_gpu:
     - data
     - train_gpu
     - evaluate
+  all_2:
+    - data2
+    - train_cpu2
+    - evaluate2
+  all_2_gpu:
+    - data2
+    - train_gpu2
+    - evaluate2
 
 # Project commands, specified in a style similar to CI config files (e.g. Azure
 # pipelines). The name is the command name that lets you trigger the command
@@ -38,7 +51,7 @@ commands:
   - name: "data"
     help: "Parse the gold-standard annotations from the Prodigy annotations."
     script:
-      - "python ./scripts/parse_data.py ${vars.annotations} ${vars.train_file} ${vars.dev_file}"
+      - "python ./scripts/parse_data.py ${vars.annotations} ${vars.train_file} ${vars.dev_file} 1"
     deps:
       - ${vars.annotations}
     outputs:
@@ -48,7 +61,7 @@ commands:
   - name: "train_cpu"
     help: "Train the REL model on the CPU and evaluate on the dev corpus."
     script:
-      - "python -m spacy train ${vars.tok2vec_config} --output training --paths.train ${vars.train_file} --paths.dev ${vars.dev_file} -c ./scripts/custom_functions.py"
+      - "python -m spacy train ${vars.tok2vec_config} --output training_1 --paths.train ${vars.train_file} --paths.dev ${vars.dev_file} -c ./scripts/custom_functions.py"
     deps:
       - ${vars.train_file}
       - ${vars.dev_file}
@@ -58,7 +71,7 @@ commands:
   - name: "train_gpu"
     help: "Train the REL model with a Transformer on a GPU and evaluate on the dev corpus."
     script:
-      - "python -m spacy train ${vars.trf_config} --output training --paths.train ${vars.train_file} --paths.dev ${vars.dev_file} -c ./scripts/custom_functions.py --gpu-id 0"
+      - "python -m spacy train ${vars.trf_config} --output training_1 --paths.train ${vars.train_file} --paths.dev ${vars.dev_file} -c ./scripts/custom_functions.py --gpu-id 0"
     deps:
       - ${vars.train_file}
       - ${vars.dev_file}
@@ -73,6 +86,43 @@ commands:
       - ${vars.trained_model}
       - ${vars.dev_file}
 
+  - name: "data2"
+    help: "Parse the gold-standard annotations from the Prodigy annotations."
+    script:
+      - "python ./scripts/parse_data.py ${vars.annotations2} ${vars.train_file2} ${vars.dev_file2} 2"
+    deps:
+      - ${vars.annotations2}
+    outputs:
+      - ${vars.train_file2}
+      - ${vars.dev_file2}
+
+  - name: "train_cpu2"
+    help: "Train the REL model on the CPU and evaluate on the dev corpus."
+    script:
+      - "python -m spacy train ${vars.tok2vec_config} --output training_2 --paths.train ${vars.train_file2} --paths.dev ${vars.dev_file2} -c ./scripts/custom_functions.py"
+    deps:
+      - ${vars.train_file2}
+      - ${vars.dev_file2}
+    outputs:
+      - ${vars.trained_model2}
+
+  - name: "train_gpu2"
+    help: "Train the REL model with a Transformer on a GPU and evaluate on the dev corpus."
+    script:
+      - "python -m spacy train ${vars.trf_config} --output training_2 --paths.train ${vars.train_file2} --paths.dev ${vars.dev_file2} -c ./scripts/custom_functions.py --gpu-id 0"
+    deps:
+      - ${vars.train_file2}
+      - ${vars.dev_file2}
+    outputs:
+      - ${vars.trained_model2}
+
+  - name: "evaluate2"
+    help: "Apply the best model to new, unseen text, and measure accuracy at different thresholds."
+    script:
+      - "python ./scripts/evaluate.py ${vars.trained_model2} ${vars.dev_file2} False"
+    deps:
+      - ${vars.trained_model2}
+      - ${vars.dev_file2}
 
   - name: "clean"
     help: "Remove intermediate files to start data preparation and training from a clean slate."
