@@ -12,8 +12,7 @@ import nltk
 from nltk.tokenize import sent_tokenize
 
 # Download the necessary NLTK data for sentence splitting
-nltk.download("punkt")
-
+nltk.download("punkt", quiet=True)
 
 # Set the root directory of the project
 ROOT_DIR = os.path.dirname(
@@ -440,17 +439,11 @@ class Preprocessor:
                 "answer": "accept",
             }
 
-            save_path = os.path.join(ROOT_DIR, "rel_model/assets", "annotations.jsonl")
-            with open(save_path, "a") as file:
-                # Save article text to file
-                json.dump(rel_data, file)
-                file.write("\n")
-
             relation_data.append(rel_data)
 
         return training_data, relation_data
 
-    def preprocess_json_rel(self, relational_annotations: list):
+    def preprocess_json_rel(self, relational_annotations: list, save_path: str):
         """
         Create training and validation datasets from a training set and store them as json files.
 
@@ -459,13 +452,15 @@ class Preprocessor:
         :return: None
         """
 
-        save_path = os.path.join(ROOT_DIR, "rel_model/assets", "annotations.json")
         with open(save_path, "w") as file:
             # Save article text to file
             for annotation in relational_annotations:
                 json.dump(annotation, file)
+                file.write("\n")
 
-    def preprocess_json(self, training_data: list, validation_data: list):
+    def preprocess_json(
+        self, training_data: list, validation_data: list, train_path: str, dev_path: str
+    ):
         """
         Create training and validation datasets from a training set and store them as json files.
 
@@ -474,13 +469,11 @@ class Preprocessor:
         :return: None
         """
 
-        train_save_path = os.path.join(ROOT_DIR, "ner_model/assets", "train.json")
-        with open(train_save_path, "w") as file:
+        with open(train_path, "w") as file:
             # Save article text to file
             json.dump(training_data, file)
 
-        dev_save_path = os.path.join(ROOT_DIR, "ner_model/assets", "dev.json")
-        with open(dev_save_path, "w") as file:
+        with open(dev_path, "w") as file:
             # Save article text to file
             json.dump(validation_data, file)
 
