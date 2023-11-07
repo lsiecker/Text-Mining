@@ -8,7 +8,7 @@ class knowledgeGraph():
         """
         self.G = nx.MultiDiGraph()
         
-    def draw_graph(self, all_relations : list, all_data : list):
+    def draw_graph(self, all_relations : list, all_data : list, store_graph : bool, save_path : str = None):
         """
         Draw the knowledge graph
         :param all_relations: list of relations
@@ -41,26 +41,31 @@ class knowledgeGraph():
 
         # Add nodes and edges to the graph
         for entity1, entity2, label in new_relations:
-            G.add_node(entity1, labels=entity_labels.get(entity1, []))
-            G.add_node(entity2, labels=entity_labels.get(entity2, []))
-            G.add_edge(entity1, entity2, label=label)
+            self.G.add_node(entity1, labels=entity_labels.get(entity1, []))
+            self.G.add_node(entity2, labels=entity_labels.get(entity2, []))
+            self.G.add_edge(entity1, entity2, label=label)
 
 
         # Visualize the graph
-        pos = nx.spring_layout(G, seed= 42)
-        labels = {n: str(n) for n in G.nodes()}
-        edge_labels = {(a, b): labels['label'] for a, b, labels in G.edges(data=True)}
+        pos = nx.spring_layout(self.G, seed= 42)
+        labels = {n: str(n) for n in self.G.nodes()}
+        edge_labels = {(a, b): labels['label'] for a, b, labels in self.G.edges(data=True)}
 
         plt.figure(figsize=(12, 10))
-        nx.draw(G, pos, with_labels=True, labels=labels, node_size=700, node_color="lightblue", edge_color='green')
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, label_pos=0.5, font_size=8)
+        nx.draw(self.G, pos, with_labels=True, labels=labels, node_size=700, node_color="lightblue", edge_color='green')
+        nx.draw_networkx_edge_labels(self.G, pos, edge_labels=edge_labels, label_pos=0.5, font_size=8)
+            
+        if store_graph:
+            plt.savefig(save_path, format="PNG")
+            print("Graph stored in {}".format(save_path))
+            
         plt.show()
-
-
+        
+        print("Query examples:")
         # Query the graph
-        print("Nodes:")
-        for node in G.nodes(data=True):
+        print("All nodes (entities):")
+        for node in self.G.nodes(data=True):
             print(node)
-        print("Edges:")
-        for edge in G.edges(data=True):
+        print("All edges (relations):")
+        for edge in self.G.edges(data=True):
             print(edge)
