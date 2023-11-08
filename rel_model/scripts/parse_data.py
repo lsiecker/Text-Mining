@@ -28,7 +28,7 @@ MAP_LABELS_1 = {
 MAP_LABELS_2 = {}
 
 
-def main(json_loc: Path, train_file: Path, dev_file: Path, component: int = 1):
+def main(json_loc: Path, file_path: Path, component: int):
     if component == 1:
         MAP_LABELS = MAP_LABELS_1
     else:
@@ -160,17 +160,10 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, component: int = 1):
                         count_all["train"] += pos + neg
 
     docbin = DocBin(docs=docs["train"], store_user_data=True)
-    docbin.to_disk(train_file)
+    docbin.to_disk(file_path)
     msg.info(
         f"{len(docs['train'])} training sentences from {len(ids['train'])} articles, "
         f"{count_pos['train']}/{count_all['train']} pos instances."
-    )
-
-    docbin = DocBin(docs=docs["dev"], store_user_data=True)
-    docbin.to_disk(dev_file)
-    msg.info(
-        f"{len(docs['dev'])} dev sentences from {len(ids['dev'])} articles, "
-        f"{count_pos['dev']}/{count_all['dev']} pos instances."
     )
 
 
