@@ -4,3 +4,5 @@ Pipfile
 Pipfile.lock
 __pycache__/*
 .vscode
+
+ner_model/training_1/
