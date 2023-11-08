@@ -270,7 +270,7 @@ class Preprocessor:
         else:
             return char_span.start, char_span.end - 1
 
-    def process_export_sentences(self, export_data: list, ground_truth: bool = False):
+    def process_export_sentences(self, export_data: list, ground_truth: bool = False, component: int = 1):
         """
         Processes a Label studio export dataset and converts it to a training dataset and relational dataset.
 
@@ -427,6 +427,18 @@ class Preprocessor:
                 }
                 for i, token in enumerate(self.nlp(text))
             ]
+
+           # if component == 2 :
+           #         rel_data = {
+           #         "text": text,
+           #         "spans": spans,
+           #         "meta": {"source": str(data["id"])}
+           #         if not ground_truth
+           #         else {"source": str(data["id"]) + "_truth"},
+           #         "tokens": tokens,
+           #         "relations": relational_label_list,
+           #         "answer": "accept",
+           #     }
 
             rel_data = {
                 "text": text,

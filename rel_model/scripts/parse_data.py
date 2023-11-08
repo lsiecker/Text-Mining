@@ -25,10 +25,17 @@ MAP_LABELS_1 = {
     "org:unrelated": "unrelated",
 }
 
-MAP_LABELS_2 = {}
+MAP_LABELS_2 = {
+    "org:has_part": "has_part",
+    "org:has_participant" : "has_participant",
+    "org:has_activity" : "has_activity",
+    "org:caused_by" : "caused_by",
+    "org:happened_on" : "happened_on",
+    "org:happened_at" : "happened_at",
+}
 
 
-def main(json_loc: Path, train_file: Path, dev_file: Path, component: int = 1):
+def main(json_loc: Path, train_file: Path, dev_file: Path, component: int):
     if component == 1:
         MAP_LABELS = MAP_LABELS_1
     else:
@@ -119,16 +126,16 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, component: int = 1):
                         found += 1
                     else:
                         skipped += 1
-                print(
-                    "for ",
-                    example["meta"]["source"],
-                    ", skipped: ",
-                    skipped,
-                    "found: ",
-                    found,
-                    " from true relations: ",
-                    true_relation,
-                )
+               # print(
+               #     "for ",
+               #     example["meta"]["source"],
+               #     ", skipped: ",
+               #     skipped,
+               #     "found: ",
+               #     found,
+               #     " from true relations: ",
+               #     true_relation,
+               # )
 
                 # The annotation is complete, so fill in zero's where the data is missing
                 for x1 in span_starts:
@@ -148,6 +155,7 @@ def main(json_loc: Path, train_file: Path, dev_file: Path, component: int = 1):
                     )
                     article_id = article_id.replace(".txt", "")
                     article_id = article_id.split("_")[-1]
+                    print(article_id)
                     if article_id.endswith("truth"):
                         ids["dev"].add(article_id)
                         docs["dev"].append(doc)

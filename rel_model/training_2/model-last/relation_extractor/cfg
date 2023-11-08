@@ -1,0 +1,11 @@
+{
+  "labels":[
+    "has_part",
+    "has_participant",
+    "has_activity",
+    "caused_by",
+    "happened_on",
+    "happened_at"
+  ],
+  "threshold":0.5
+}
