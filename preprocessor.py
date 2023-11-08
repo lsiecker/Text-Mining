@@ -443,7 +443,13 @@ class Preprocessor:
 
         return training_data, relation_data
 
-    def preprocess_json_rel(self, relational_annotations: list, save_path: str):
+    def preprocess_json_rel(
+        self,
+        relational_annotations_train: list,
+        relational_annotations_val: list,
+        save_path_train: str,
+        save_path_dev,
+    ):
         """
         Create training and validation datasets from a training set and store them as json files.
 
@@ -452,9 +458,15 @@ class Preprocessor:
         :return: None
         """
 
-        with open(save_path, "w") as file:
+        with open(save_path_train, "w") as file:
             # Save article text to file
-            for annotation in relational_annotations:
+            for annotation in relational_annotations_train:
+                json.dump(annotation, file)
+                file.write("\n")
+
+        with open(save_path_dev, "w") as file:
+            # Save article text to file
+            for annotation in relational_annotations_val:
                 json.dump(annotation, file)
                 file.write("\n")
 

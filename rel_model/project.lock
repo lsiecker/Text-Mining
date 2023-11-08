@@ -1,14 +1,18 @@
 data:
   cmd: python -m weasel run data
   script:
-    - python ./scripts/parse_data.py assets/annotations_1.jsonl data/train_1.spacy
-      data/dev_1.spacy 1
+    - python ./scripts/parse_data.py assets/annotations_1_train.jsonl data/train_1.spacy
+      1
+    - python ./scripts/parse_data.py assets/annotations_1_dev.jsonl data/dev_1.spacy
+      1
   deps:
-    - path: assets/annotations_1.jsonl
-      md5: 4714715dbe7aab7dee9f3359be6e95a6
+    - path: assets/annotations_1_train.jsonl
+      md5: e5706eeb245fb4f0c7cb69d77b796c8a
+    - path: assets/annotations_1_dev.jsonl
+      md5: 86db4c76b88fcde8f33025dde15a6793
   outs:
     - path: data/train_1.spacy
-      md5: 9b8a35ae1ac3005b85f0b86c60ca55cd
+      md5: 004b28cacbd3063b1b4e3331244b0063
     - path: data/dev_1.spacy
       md5: e77a6e27e2dc30accb80b5a3d4840b34
 train_cpu:
