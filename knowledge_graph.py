@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import json
+import math
 
 class knowledgeGraph():
     def __init__(self):
@@ -9,7 +10,7 @@ class knowledgeGraph():
         """
         self.G = nx.MultiDiGraph()
         
-    def draw_graph(self, all_relations : list, all_data : list, store_graph : bool, subset : tuple = (0,5), save_path : str = None):
+    def draw_graph(self, all_relations : list, all_data : list, store_graph : bool, filter_labels : list, subset : tuple = (0,5), save_path : str = None):
         """
         Draw the knowledge graph
         :param all_relations: list of relations
@@ -48,14 +49,14 @@ class knowledgeGraph():
             self.G.add_node(entity2, labels=entity_labels.get(entity2, []))
             self.G.add_edge(entity1, entity2, label=label)
 
-        subset_landmarks = [entity for entity, labels in entity_labels.items() if labels == ["landmark_name"]][subset[0]:subset[1]]
+        subset_landmarks = [entity for entity, labels in entity_labels.items() if labels == filter_labels][subset[0]:subset[1]]
         subset_relations = [triple for triple in new_relations if any(item in subset_landmarks for item in triple)]
         subset_entities = [item for triple in subset_relations for item in triple[:2]]
 
         subgraph = nx.subgraph(self.G, subset_entities)
 
         # Visualize subgraph
-        pos = nx.spring_layout(subgraph, seed= 42)
+        pos = nx.spring_layout(subgraph, seed= 42, k = 6)
         labels = {n: str(n) for n in subgraph.nodes()}
         edge_labels = {(a, b): labels['label'] for a, b, labels in subgraph.edges(data=True)}
 
