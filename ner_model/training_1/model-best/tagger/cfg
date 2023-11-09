@@ -1,5 +1,4 @@
 {
-  "label_smoothing":0.0,
   "labels":[
     "$",
     "''",
