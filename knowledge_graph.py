@@ -82,7 +82,7 @@ class knowledgeGraph():
         """
         Export the knowledge graph to a JSON file
         :param save_path: Path to the JSON file
-        """
+        """ 
         data = {
             "nodes": [
                 {"id": node, "labels": labels}
