@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import json
 
 class knowledgeGraph():
     def __init__(self):
@@ -27,6 +28,8 @@ class knowledgeGraph():
                         new_relations.append((node_b, relations[1], relations[2]))
                     else:
                         new_relations.append(relations)
+            else:
+                new_relations.append(relation)
 
                 
             
@@ -74,3 +77,23 @@ class knowledgeGraph():
         print("All edges (relations):")
         for edge in self.G.edges(data=True):
             print(edge)
+    
+    def export_json(self, all_relations: list, all_data: list, save_path: str = None):
+        """
+        Export the knowledge graph to a JSON file
+        :param save_path: Path to the JSON file
+        """
+        data = {
+            "nodes": [
+                {"id": node, "labels": labels}
+                for node, labels in self.G.nodes(data="labels")
+            ],
+            "edges": [
+                {"source": source, "target": target, "label": label}
+                for source, target, label in self.G.edges(data="label")
+            ],
+        }
+
+        with open(save_path, "w") as json_file:
+            json.dump(data, json_file, indent=4)
+        print(f"Knowledge graph exported to {save_path}")
