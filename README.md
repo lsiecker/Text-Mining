@@ -4,11 +4,8 @@ This repository contains the code for extracting information from texts using NL
 
 ## Project Structure
 - **Data** (`data/`): Contains all the raw wikipedia texts and annotation files.
-- **NER component** (`ner_model/`): Contains the trained NER model including the preprocessed training and validation files.
-- **REL component** (`rel_model/`): Contains the trained REL model including the preprocessed training and validation files.
-
-## Documentation
-
+- **NER component** (`ner_model/`): Contains the trained NER model including the preprocessed training and validation files. This component is based on [Spacy NER component tutorial](https://spacy.io/usage/training)
+- **REL component** (`rel_model/`): Contains the trained REL model including the preprocessed training and validation files. This component is based on the [Explosion AI's REL component](https://github.com/explosion/projects/tree/v3/tutorials/rel_component)
 
 ## Assignment Description
 Copied from the assignment description of the course 2AMM30 at the Eindhoven University of Technology. The downloaded official assignment description can be found [here](./doc/2AMM30%20Assignment%20description%20AY23-24.pdf).
