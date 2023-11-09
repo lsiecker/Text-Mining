@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import json
 
 class knowledgeGraph():
     def __init__(self):
@@ -8,7 +9,7 @@ class knowledgeGraph():
         """
         self.G = nx.MultiDiGraph()
         
-    def draw_graph(self, all_relations : list, all_data : list, store_graph : bool, save_path : str = None):
+    def draw_graph(self, all_relations : list, all_data : list, store_graph : bool, subset : tuple = (0,5), save_path : str = None):
         """
         Draw the knowledge graph
         :param all_relations: list of relations
@@ -27,6 +28,8 @@ class knowledgeGraph():
                         new_relations.append((node_b, relations[1], relations[2]))
                     else:
                         new_relations.append(relations)
+            else:
+                new_relations.append(relation)
 
                 
             
@@ -45,15 +48,20 @@ class knowledgeGraph():
             self.G.add_node(entity2, labels=entity_labels.get(entity2, []))
             self.G.add_edge(entity1, entity2, label=label)
 
+        subset_landmarks = [entity for entity, labels in entity_labels.items() if labels == ["landmark_name"]][subset[0]:subset[1]]
+        subset_relations = [triple for triple in new_relations if any(item in subset_landmarks for item in triple)]
+        subset_entities = [item for triple in subset_relations for item in triple[:2]]
 
-        # Visualize the graph
-        pos = nx.spring_layout(self.G, seed= 42)
-        labels = {n: str(n) for n in self.G.nodes()}
-        edge_labels = {(a, b): labels['label'] for a, b, labels in self.G.edges(data=True)}
+        subgraph = nx.subgraph(self.G, subset_entities)
+
+        # Visualize subgraph
+        pos = nx.spring_layout(subgraph, seed= 42)
+        labels = {n: str(n) for n in subgraph.nodes()}
+        edge_labels = {(a, b): labels['label'] for a, b, labels in subgraph.edges(data=True)}
 
         plt.figure(figsize=(12, 10))
-        nx.draw(self.G, pos, with_labels=True, labels=labels, node_size=700, node_color="lightblue", edge_color='green')
-        nx.draw_networkx_edge_labels(self.G, pos, edge_labels=edge_labels, label_pos=0.5, font_size=8)
+        nx.draw(subgraph, pos, with_labels=True, labels=labels, node_size=500, node_color="lightblue", edge_color='green')
+        nx.draw_networkx_edge_labels(subgraph, pos, edge_labels=edge_labels, label_pos=0.5, font_size=8)
             
         if store_graph:
             plt.savefig(save_path, format="PNG")
@@ -69,3 +77,23 @@ class knowledgeGraph():
         print("All edges (relations):")
         for edge in self.G.edges(data=True):
             print(edge)
+    
+    def export_json(self, all_relations: list, all_data: list, save_path: str = None):
+        """
+        Export the knowledge graph to a JSON file
+        :param save_path: Path to the JSON file
+        """ 
+        data = {
+            "nodes": [
+                {"id": node, "labels": labels}
+                for node, labels in self.G.nodes(data="labels")
+            ],
+            "edges": [
+                {"source": source, "target": target, "label": label}
+                for source, target, label in self.G.edges(data="label")
+            ],
+        }
+
+        with open(save_path, "w") as json_file:
+            json.dump(data, json_file, indent=4)
+        print(f"Knowledge graph exported to {save_path}")
