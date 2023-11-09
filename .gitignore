@@ -6,3 +6,5 @@ __pycache__/*
 .vscode
 
 ner_model/training_1/
+data/component_1/AA/*
+data/component_1/AB/*
