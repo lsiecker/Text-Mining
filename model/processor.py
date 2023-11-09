@@ -44,6 +44,15 @@ class Processor:
         return data
 
     def char_to_token(self, text, start, end):
+        """
+        Converts character-level annotation to token-level annotation.
+
+        :param text: The text that is annotated
+        :param start: The start index of the annotation
+        :param end: The end index of the annotation
+        :return: The start and end index of the annotation in tokens
+        """
+
         doc = self.nlp(text)
         char_span = doc.char_span(start, end, alignment_mode="contract")
         if char_span is None:

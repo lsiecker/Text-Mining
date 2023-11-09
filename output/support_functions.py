@@ -1,12 +1,9 @@
 import json
 import os
 
-
-# Set the root directory of the project
 ROOT_DIR = os.path.abspath(
     os.path.join(os.path.dirname("preprocessing.ipynb"), os.pardir)
-)  # This file is the root of the project
-print(f"Root directory: {ROOT_DIR}")
+)
 DATA_PATH = os.path.join(ROOT_DIR, "data")
 
 

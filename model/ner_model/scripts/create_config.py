@@ -5,6 +5,10 @@ import spacy
 
 
 def create_config(model_name: str, component_to_update: str, output_path: Path):
+    """
+    Create a config file for a given model that can be used for training.
+    Fully copied from the Explosion AI repository without any changes.
+    """
     nlp = spacy.load(model_name)
 
     # create a new config as a copy of the loaded pipeline's config

@@ -1,5 +1,3 @@
-"""Convert entity annotation from spaCy v2 TRAIN_DATA format to spaCy v3
-.spacy format."""
 import srsly
 import typer
 import warnings
@@ -10,6 +8,18 @@ from spacy.tokens import DocBin
 
 
 def convert(lang: str, input_path: Path, output_path: Path):
+    """
+    Convert the json document in the assets folder (input_path) to a .spacy file that can be used for training.
+
+    Parameters
+    ----------
+    lang: str
+        Language of the data
+    input_path: Path
+        Path to the input file
+    output_path: Path
+        Path to the output file
+    """
     nlp = spacy.blank(lang)
     db = DocBin()
     print(f"Start converting NER data...")

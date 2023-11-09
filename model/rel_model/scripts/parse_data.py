@@ -11,7 +11,6 @@ from wasabi import Printer
 
 msg = Printer()
 
-SYMM_LABELS = ["Binds"]
 MAP_LABELS_1 = {
     "org:created_by": "created_by",
     "org:located_in": "located_in",
@@ -33,6 +32,7 @@ def main(json_loc: Path, file_path: Path, component: int):
         MAP_LABELS = MAP_LABELS_1
     else:
         MAP_LABELS = MAP_LABELS_2
+
     """Creating the corpus from the Prodigy annotations."""
     Doc.set_extension("rel", default={})
     vocab = Vocab()
@@ -49,7 +49,7 @@ def main(json_loc: Path, file_path: Path, component: int):
             if example["answer"] == "accept":
                 neg = 0
                 pos = 0
-                # try:
+
                 # Parse the tokens
                 words = [t["text"] for t in example["tokens"]]
                 spaces = [t["ws"] for t in example["tokens"]]
@@ -58,10 +58,11 @@ def main(json_loc: Path, file_path: Path, component: int):
                 # Parse the GGP entities
                 spans = example["spans"]
                 entities = []
-                # span_end_to_start = {}
+
                 for i, span in enumerate(spans):
                     if span["token_start"] == None or span["token_end"] == None:
                         continue
+
                     entity = doc.char_span(
                         span["start"],
                         span["end"],
@@ -69,18 +70,10 @@ def main(json_loc: Path, file_path: Path, component: int):
                         alignment_mode="contract",
                         span_id=i,
                     )
-                    # span_end_to_start[span["token_end"]] = span["token_start"]
 
                     if entity is not None and entity not in entities:
                         entities.append(entity)
                     span_starts.add(span["token_start"])
-                # print(span_starts)
-
-                # if (
-                #     example["meta"]["source"] == "Engelsberg Ironworks"
-                #     or example["meta"]["source"] == "Emas National Park"
-                # ):
-                #     print(entities, example["text"])
 
                 doc.ents = filter_spans(entities)
 
@@ -88,9 +81,11 @@ def main(json_loc: Path, file_path: Path, component: int):
                 rels = {}
                 skipped = 0
                 found = 0
+
                 for x1 in span_starts:
                     for x2 in span_starts:
                         rels[(x1, x2)] = {}
+
                 relations = example["relations"]
                 true_relation = len(relations)
 
@@ -112,10 +107,6 @@ def main(json_loc: Path, file_path: Path, component: int):
                         if label not in rels[(start, end)]:
                             rels[(start, end)][label] = 1.0
                             pos += 1
-                        if label in SYMM_LABELS:
-                            if label not in rels[(end, start)]:
-                                rels[(end, start)][label] = 1.0
-                                pos += 1
                         found += 1
                     else:
                         skipped += 1

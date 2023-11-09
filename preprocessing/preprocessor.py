@@ -1,24 +1,19 @@
-import warnings
 import ftfy
 import pandas as pd
 import spacy
-from spacy.tokens import Doc, DocBin
 import os
 import json
 from tqdm import tqdm
 import multiprocessing
 import re
 import nltk
-from nltk.tokenize import sent_tokenize
 
 # Download the necessary NLTK data for sentence splitting
 nltk.download("punkt", quiet=True)
 
-# Set the root directory of the project
 ROOT_DIR = os.path.abspath(
     os.path.join(os.path.dirname("preprocessing.ipynb"), os.pardir)
-)  # This file is the root of the project
-print(f"Root directory: {ROOT_DIR}")
+)
 DATA_PATH = os.path.join(ROOT_DIR, "data")
 
 
