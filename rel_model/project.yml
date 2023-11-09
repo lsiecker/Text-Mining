@@ -3,13 +3,15 @@ description: "This example project shows how to implement a spaCy component with
 
 # Variables can be referenced across the project.yml using ${vars.var_name}
 vars:
-  annotations: "assets/annotations_1.jsonl"
+  annotations_train: "assets/annotations_1_train.jsonl"
+  annotations_dev: "assets/annotations_1_dev.jsonl"
   tok2vec_config: "configs/rel_tok2vec.cfg"
   trf_config: "configs/rel_trf.cfg"
   train_file: "data/train_1.spacy"
   dev_file: "data/dev_1.spacy"
   trained_model: "training_1/model-best"
-  annotations2: "assets/annotations_2.jsonl"
+  annotations2_train: "assets/annotations_2_train.jsonl"
+  annotations2_dev: "assets/annotations_2_dev.jsonl"
   train_file2: "data/train_2.spacy"
   dev_file2: "data/dev_2.spacy"
   trained_model2: "training_2/model-best"
@@ -21,9 +23,10 @@ directories: ["scripts", "configs", "assets", "data", "training"]
 # Assets that should be downloaded or available in the directory. You can replace
 # this with your own input data.
 assets:
-    - dest: ${vars.annotations}
-      description: "Gold-standard REL annotations created with Prodigy"
-    - dest: ${vars.annotations2}
+    - dest: ${vars.annotations_train}
+    - dest: ${vars.annotations2_train}
+    - dest: ${vars.annotations_dev}
+    - dest: ${vars.annotations2_dev}
 
 workflows:
   all_1:
@@ -51,9 +54,11 @@ commands:
   - name: "data"
     help: "Parse the gold-standard annotations from the Prodigy annotations."
     script:
-      - "python ./scripts/parse_data.py ${vars.annotations} ${vars.train_file} ${vars.dev_file} 1"
+      - "python ./scripts/parse_data.py ${vars.annotations_train} ${vars.train_file} 1"
+      - "python ./scripts/parse_data.py ${vars.annotations_dev} ${vars.dev_file} 1"
     deps:
-      - ${vars.annotations}
+      - ${vars.annotations_train}
+      - ${vars.annotations_dev}
     outputs:
       - ${vars.train_file}
       - ${vars.dev_file}
@@ -89,9 +94,11 @@ commands:
   - name: "data2"
     help: "Parse the gold-standard annotations from the Prodigy annotations."
     script:
-      - "python ./scripts/parse_data.py ${vars.annotations2} ${vars.train_file2} ${vars.dev_file2} 2"
+      - "python ./scripts/parse_data.py ${vars.annotations2_train} ${vars.train_file2} 2"
+      - "python ./scripts/parse_data.py ${vars.annotations2_dev} ${vars.dev_file2} 2"
     deps:
-      - ${vars.annotations2}
+      - ${vars.annotations2_train}
+      - ${vars.annotations2_dev}
     outputs:
       - ${vars.train_file2}
       - ${vars.dev_file2}
