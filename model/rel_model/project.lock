@@ -1,0 +1,80 @@
+data:
+  cmd: python -m weasel run data
+  script:
+    - python ./scripts/parse_data.py assets/annotations_1_train.jsonl data/train_1.spacy
+      1
+    - python ./scripts/parse_data.py assets/annotations_1_dev.jsonl data/dev_1.spacy
+      1
+  deps:
+    - path: assets/annotations_1_train.jsonl
+      md5: e5706eeb245fb4f0c7cb69d77b796c8a
+    - path: assets/annotations_1_dev.jsonl
+      md5: 86db4c76b88fcde8f33025dde15a6793
+  outs:
+    - path: data/train_1.spacy
+      md5: 004b28cacbd3063b1b4e3331244b0063
+    - path: data/dev_1.spacy
+      md5: e77a6e27e2dc30accb80b5a3d4840b34
+train_cpu:
+  cmd: python -m weasel run train_cpu
+  script:
+    - python -m spacy train configs/rel_tok2vec.cfg --output training_1 --paths.train
+      data/train_1.spacy --paths.dev data/dev_1.spacy -c ./scripts/custom_functions.py
+  deps:
+    - path: data/train_1.spacy
+      md5: 9b8a35ae1ac3005b85f0b86c60ca55cd
+    - path: data/dev_1.spacy
+      md5: e77a6e27e2dc30accb80b5a3d4840b34
+  outs:
+    - path: training_1/model-best
+      md5: 5b8f4a777df131bbd8f579c895c61635
+evaluate:
+  cmd: python -m weasel run evaluate
+  script:
+    - python ./scripts/evaluate.py training_1/model-best data/dev_1.spacy False
+  deps:
+    - path: training_1/model-best
+      md5: 5b8f4a777df131bbd8f579c895c61635
+    - path: data/dev_1.spacy
+      md5: e77a6e27e2dc30accb80b5a3d4840b34
+  outs: []
+data2:
+  cmd: python -m weasel run data2
+  script:
+    - python ./scripts/parse_data.py assets/annotations_2_train.jsonl data/train_2.spacy
+      2
+    - python ./scripts/parse_data.py assets/annotations_2_dev.jsonl data/dev_2.spacy
+      2
+  deps:
+    - path: assets/annotations_2_train.jsonl
+      md5: 825cd9287e440d4e3e94ab0275ecaf87
+    - path: assets/annotations_2_dev.jsonl
+      md5: c38c3f821b26dba9a2fc6716ed35a885
+  outs:
+    - path: data/train_2.spacy
+      md5: 1b69fc75efc5c343ba63970baf084dc6
+    - path: data/dev_2.spacy
+      md5: e77a6e27e2dc30accb80b5a3d4840b34
+train_cpu2:
+  cmd: python -m weasel run train_cpu2
+  script:
+    - python -m spacy train configs/rel_tok2vec.cfg --output training_2 --paths.train
+      data/train_2.spacy --paths.dev data/dev_2.spacy -c ./scripts/custom_functions.py
+  deps:
+    - path: data/train_2.spacy
+      md5: 1b69fc75efc5c343ba63970baf084dc6
+    - path: data/dev_2.spacy
+      md5: e77a6e27e2dc30accb80b5a3d4840b34
+  outs:
+    - path: training_2/model-best
+      md5: 7313a8653dc465c7e39b4d0441dd3922
+evaluate2:
+  cmd: python -m weasel run evaluate2
+  script:
+    - python ./scripts/evaluate.py training_2/model-best data/dev_2.spacy False
+  deps:
+    - path: training_2/model-best
+      md5: 7313a8653dc465c7e39b4d0441dd3922
+    - path: data/dev_2.spacy
+      md5: e77a6e27e2dc30accb80b5a3d4840b34
+  outs: []

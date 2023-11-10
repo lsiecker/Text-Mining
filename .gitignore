@@ -5,3 +5,9 @@ Pipfile.lock
 __pycache__/*
 .vscode
 
+ner_model/training_1/
+data/component_1/AA/*
+data/component_1/AB/*
+
+# Add all pycache in every folder to ignore
+**/__pycache__/*
