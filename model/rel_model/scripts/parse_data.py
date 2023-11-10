@@ -24,7 +24,14 @@ MAP_LABELS_1 = {
     "org:unrelated": "unrelated",
 }
 
-MAP_LABELS_2 = {}
+MAP_LABELS_2 = {
+    "org:has_part": "has_part",
+    "org:has_participant" : "has_participant",
+    "org:has_activity" : "has_activity",
+    "org:caused_by" : "caused_by",
+    "org:happened_on" : "happened_on",
+    "org:happened_at" : "happened_at",
+}
 
 
 def main(json_loc: Path, file_path: Path, component: int):
