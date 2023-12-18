@@ -4,6 +4,7 @@ from pathlib import Path
 import spacy
 from spacy.tokens import DocBin, Doc
 from spacy.training.example import Example
+from sklearn.metrics import confusion_matrix
 
 # make the factory work
 from rel_pipe import make_relation_extractor, score_relations
@@ -13,7 +14,9 @@ from rel_model import create_relation_model, create_classification_layer, create
 
 
 def main(trained_pipeline: Path, test_data: Path, print_details: bool):
+    print_details=True
     nlp = spacy.load(trained_pipeline)
+
 
     doc_bin = DocBin(store_user_data=True).from_disk(test_data)
     docs = doc_bin.get_docs(nlp.vocab)
@@ -73,9 +76,19 @@ def main(trained_pipeline: Path, test_data: Path, print_details: bool):
 
 def _score_and_format(examples, thresholds):
     for threshold in thresholds:
+        print(examples)
         r = score_relations(examples, threshold)
         results = {k: "{:.2f}".format(v * 100) for k, v in r.items()}
+
+        gold_labels=[example.reference._.rel for example in examples]
+        print(gold_labels)
+        pred_labels=[example.predicted._rel for example in examples]
+        print(pred_labels)
+        conf_matrix = confusion_matrix(gold_labels, pred_labels)
+       
         print(f"threshold {'{:.2f}'.format(threshold)} \t {results}")
+        print("Confusion matrix:")
+        print(conf_matrix)
 
 
 if __name__ == "__main__":

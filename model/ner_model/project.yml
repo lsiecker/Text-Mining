@@ -34,7 +34,8 @@ workflows:
     - convert
     - create-config
     - train
-    - evaluate
+    - evaluate1
+    - evaluate2
 
 # Project commands, specified in a style similar to CI config files (e.g. Azure
 # pipelines). The name is the command name that lets you trigger the command
@@ -79,15 +80,25 @@ commands:
     outputs:
       - "training/model-best"
 
-  - name: "evaluate"
+  - name: "evaluate1"
     help: "Evaluate the model and export metrics"
     script:
-      - "python -m spacy evaluate training/model-best corpus/dev.spacy --output training/metrics.json"
+      - "python -m spacy evaluate training_1/model-best corpus/dev_1.spacy --output training_1/metrics.json --code scripts/evaluate.py"
     deps:
-      - "corpus/dev.spacy"
-      - "training/model-best"
+      - "corpus/dev_1.spacy"
+      - "training_1/model-best"
     outputs:
-      - "training/metrics.json"
+      - "training_1/metrics.json"
+
+  - name: "evaluate2"
+    help: "Evaluate the model and export metrics"
+    script:
+      - "python -m spacy evaluate training_2/model-best corpus/dev_2.spacy --output training_2/metrics.json --code scripts/evaluate.py"
+    deps:
+      - "corpus/dev_2.spacy"
+      - "training_2/model-best"
+    outputs:
+      - "training_1/metrics.json"
 
   - name: package
     help: "Package the trained model as a pip package"

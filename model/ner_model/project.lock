@@ -43,12 +43,26 @@ train:
 evaluate:
   cmd: python -m weasel run evaluate
   script:
-    - python -m spacy evaluate training/model-best corpus/dev.spacy --output training/metrics.json
+    - python -m spacy evaluate training_1/model-best corpus/dev_1.spacy --output training_1/metrics.json
+      --code scripts/evaluate.py
   deps:
-    - path: corpus/dev.spacy
-      md5: e5d1e9c46b82562d10a450b97b292c77
-    - path: training/model-best
-      md5: dcc3ee737d83314c059ade56a2cbc4a7
+    - path: corpus/dev_1.spacy
+      md5: b44e27103017d7599711546a2ae38be5
+    - path: training_1/model-best
+      md5: 214a8672b8b485b070e7cfdd4a06963f
   outs:
-    - path: training/metrics.json
-      md5: 2a54e9e53b8a47878256ac1ac7df496f
+    - path: training_1/metrics.json
+      md5: 7c79f84c4b2cb4ef7bd82d9af0ff121d
+evaluate2:
+  cmd: python -m weasel run evaluate2
+  script:
+    - python -m spacy evaluate training_2/model-best corpus/dev_2.spacy --output training_2/metrics.json
+      --code scripts/evaluate.py
+  deps:
+    - path: corpus/dev_2.spacy
+      md5: 4688b2be82818f44cd976e185bb10bd9
+    - path: training_2/model-best
+      md5: 5a7fd2f79ab69247cbab694968f57b4b
+  outs:
+    - path: training_1/metrics.json
+      md5: null
