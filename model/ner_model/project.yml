@@ -32,7 +32,6 @@ assets:
 workflows:
   all:
     - convert
-    - create-config
     - train
     - evaluate1
     - evaluate2
