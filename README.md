@@ -10,7 +10,7 @@ This repository contains the code for extracting information from texts using NL
 ## Documentation
 - [**Project Initialization and Data Preprocessing**](./doc/preprocessing.md): Documentation on how to start the project yourself and how to preprocess the data.
 - [**Model Training**](./doc/model_training.md): Documentation on how to start training the models (both the NER and the REL).
-- [**Model Output**](./doc/model_output.md): Documentation on how to use the trained models to extract information from text and eventually create the knowledge graph.
+- [**Model Output**](./doc/output.md): Documentation on how to use the trained models to extract information from text and eventually create the knowledge graph.
 
 ## Assignment Description
 Copied from the assignment description of the course 2AMM30 at the Eindhoven University of Technology. The downloaded official assignment description can be found [here](./doc/2AMM30%20Assignment%20description%20AY23-24.pdf).
