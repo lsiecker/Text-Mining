@@ -78,4 +78,4 @@ evaluate1:
       md5: b19b4a7ea402a2439c0d39dae8bd3fcc
   outs:
     - path: training_1/metrics.json
-      md5: 58932f7516e55dd3d9e9992ae41bfd18
+      md5: 7fb65545a8deaf649988838173365dc3
