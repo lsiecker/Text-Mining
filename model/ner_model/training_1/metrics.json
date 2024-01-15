@@ -67,5 +67,20 @@
       "f":0.0
     }
   },
-  "speed":6099.3959269575
+  "cats_score":0.0,
+  "cats_score_desc":"macro F",
+  "cats_micro_p":0.0,
+  "cats_micro_r":0.0,
+  "cats_micro_f":0.0,
+  "cats_macro_p":0.0,
+  "cats_macro_r":0.0,
+  "cats_macro_f":0.0,
+  "cats_macro_auc":0.0,
+  "cats_f_per_type":{
+
+  },
+  "cats_auc_per_type":{
+
+  },
+  "speed":5912.5522428843
 }

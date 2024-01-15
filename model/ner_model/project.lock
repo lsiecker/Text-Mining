@@ -62,10 +62,10 @@ evaluate2:
     - path: corpus/dev_2.spacy
       md5: 4688b2be82818f44cd976e185bb10bd9
     - path: training_2/model-best
-      md5: a08fe12c162fd47f331969b52f8a3ddb
+      md5: 113d2bb5b0eab0af0a556678310bcec3
   outs:
     - path: training_1/metrics.json
-      md5: null
+      md5: 58932f7516e55dd3d9e9992ae41bfd18
 evaluate1:
   cmd: python -m weasel run evaluate1
   script:
@@ -75,7 +75,7 @@ evaluate1:
     - path: corpus/dev_1.spacy
       md5: b44e27103017d7599711546a2ae38be5
     - path: training_1/model-best
-      md5: 214a8672b8b485b070e7cfdd4a06963f
+      md5: b19b4a7ea402a2439c0d39dae8bd3fcc
   outs:
     - path: training_1/metrics.json
-      md5: b3d940e1c2f2443f5a2d80786a899dcd
+      md5: 58932f7516e55dd3d9e9992ae41bfd18
