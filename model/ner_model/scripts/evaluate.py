@@ -46,6 +46,7 @@ def custom_confm_scorer(examples, **kwargs):
     print(total_pred) #number of predictions
     print(sent) #sentence length
     tn = sent - total_pred
+    print(tn)
     return res
 
 @spacy.registry.scorers("custom_confm_scorer") 

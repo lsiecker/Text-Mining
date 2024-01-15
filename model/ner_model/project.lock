@@ -4,10 +4,10 @@ create-config:
     - python scripts/create_config.py en_core_web_sm ner configs/config.cfg
   deps:
     - path: scripts/create_config.py
-      md5: e52eab279f8b3a1fd5a216f5a1f294a1
+      md5: 7f25b115143552af8cf243979a4834cf
   outs:
     - path: configs/config.cfg
-      md5: 3cca7cc068e5302121dd239386824faf
+      md5: 367d9a0d5e53a7f4ec277eefeac6d97d
 convert:
   cmd: python -m weasel run convert
   script:
@@ -62,7 +62,20 @@ evaluate2:
     - path: corpus/dev_2.spacy
       md5: 4688b2be82818f44cd976e185bb10bd9
     - path: training_2/model-best
-      md5: 5a7fd2f79ab69247cbab694968f57b4b
+      md5: a08fe12c162fd47f331969b52f8a3ddb
   outs:
     - path: training_1/metrics.json
       md5: null
+evaluate1:
+  cmd: python -m weasel run evaluate1
+  script:
+    - python -m spacy evaluate training_1/model-best corpus/dev_1.spacy --output training_1/metrics.json
+      --code scripts/evaluate.py
+  deps:
+    - path: corpus/dev_1.spacy
+      md5: b44e27103017d7599711546a2ae38be5
+    - path: training_1/model-best
+      md5: 214a8672b8b485b070e7cfdd4a06963f
+  outs:
+    - path: training_1/metrics.json
+      md5: b3d940e1c2f2443f5a2d80786a899dcd

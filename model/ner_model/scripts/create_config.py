@@ -19,6 +19,7 @@ def create_config(model_name: str, component_to_update: str, output_path: Path):
     config["corpora"] = default_config["corpora"]
     config["training"]["logger"] = default_config["training"]["logger"]
 
+    
     # copy tokenizer and vocab settings from the base model, which includes
     # lookups (lexeme_norm) and vectors, so they don't need to be copied or
     # initialized separately
@@ -43,6 +44,9 @@ def create_config(model_name: str, component_to_update: str, output_path: Path):
                 "source": model_name,
                 "replace_listeners": ["model.tok2vec"],
             }
+    #config["components"]["ner"]["scorer"] = {}
+    config["components"]["ner"]["scorers"] = "custom_confm_scorer"
+    print(config)
 
     # save the config
     config.to_disk(output_path)
