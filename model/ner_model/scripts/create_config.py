@@ -44,8 +44,6 @@ def create_config(model_name: str, component_to_update: str, output_path: Path):
                 "source": model_name,
                 "replace_listeners": ["model.tok2vec"],
             }
-    #config["components"]["ner"]["scorer"] = {}
-    config["components"]["ner"]["scorers"] = "custom_confm_scorer"
     print(config)
 
     # save the config
