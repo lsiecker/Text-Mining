@@ -1,3 +1,6 @@
+# This utility file contains functions that are used for retrieving the input and training the model on the data.
+# The functions in this file are used in the model_training.ipynb notebook and the model_training.py script.
+
 import warnings
 import ftfy
 import pandas as pd
@@ -60,7 +63,9 @@ class Processor:
         else:
             return char_span.start, char_span.end - 1
 
-    def process_export_sentences(self, export_data: list, ground_truth: bool = False, component: int = 1):
+    def process_export_sentences(
+        self, export_data: list, ground_truth: bool = False, component: int = 1
+    ):
         """
         Processes a Label studio export dataset and converts it to a training dataset and relational dataset.
 
@@ -218,17 +223,17 @@ class Processor:
                 for i, token in enumerate(self.nlp(text))
             ]
 
-            if component == 2 :
-                   rel_data = {
-                        "text": text,
-                        "spans": spans,
-                        "meta": {"source": str(data["id"])}
-                        if not ground_truth
-                        else {"source": str(data["id"]) + "_truth"},
-                        "tokens": tokens,
-                        "relations": relational_label_list,
-                        "answer": "accept",
-               }
+            if component == 2:
+                rel_data = {
+                    "text": text,
+                    "spans": spans,
+                    "meta": {"source": str(data["id"])}
+                    if not ground_truth
+                    else {"source": str(data["id"]) + "_truth"},
+                    "tokens": tokens,
+                    "relations": relational_label_list,
+                    "answer": "accept",
+                }
 
             else:
                 rel_data = {
