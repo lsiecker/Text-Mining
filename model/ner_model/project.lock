@@ -4,10 +4,10 @@ create-config:
     - python scripts/create_config.py en_core_web_sm ner configs/config.cfg
   deps:
     - path: scripts/create_config.py
-      md5: e52eab279f8b3a1fd5a216f5a1f294a1
+      md5: 7f25b115143552af8cf243979a4834cf
   outs:
     - path: configs/config.cfg
-      md5: 3cca7cc068e5302121dd239386824faf
+      md5: 367d9a0d5e53a7f4ec277eefeac6d97d
 convert:
   cmd: python -m weasel run convert
   script:
@@ -43,12 +43,39 @@ train:
 evaluate:
   cmd: python -m weasel run evaluate
   script:
-    - python -m spacy evaluate training/model-best corpus/dev.spacy --output training/metrics.json
+    - python -m spacy evaluate training_1/model-best corpus/dev_1.spacy --output training_1/metrics.json
+      --code scripts/evaluate.py
   deps:
-    - path: corpus/dev.spacy
-      md5: e5d1e9c46b82562d10a450b97b292c77
-    - path: training/model-best
-      md5: dcc3ee737d83314c059ade56a2cbc4a7
+    - path: corpus/dev_1.spacy
+      md5: b44e27103017d7599711546a2ae38be5
+    - path: training_1/model-best
+      md5: 214a8672b8b485b070e7cfdd4a06963f
   outs:
-    - path: training/metrics.json
-      md5: 2a54e9e53b8a47878256ac1ac7df496f
+    - path: training_1/metrics.json
+      md5: 7c79f84c4b2cb4ef7bd82d9af0ff121d
+evaluate2:
+  cmd: python -m weasel run evaluate2
+  script:
+    - python -m spacy evaluate training_2/model-best corpus/dev_2.spacy --output training_2/metrics.json
+      --code scripts/evaluate.py
+  deps:
+    - path: corpus/dev_2.spacy
+      md5: 4688b2be82818f44cd976e185bb10bd9
+    - path: training_2/model-best
+      md5: 113d2bb5b0eab0af0a556678310bcec3
+  outs:
+    - path: training_1/metrics.json
+      md5: 58932f7516e55dd3d9e9992ae41bfd18
+evaluate1:
+  cmd: python -m weasel run evaluate1
+  script:
+    - python -m spacy evaluate training_1/model-best corpus/dev_1.spacy --output training_1/metrics.json
+      --code scripts/evaluate.py
+  deps:
+    - path: corpus/dev_1.spacy
+      md5: b44e27103017d7599711546a2ae38be5
+    - path: training_1/model-best
+      md5: b19b4a7ea402a2439c0d39dae8bd3fcc
+  outs:
+    - path: training_1/metrics.json
+      md5: 7fb65545a8deaf649988838173365dc3
